@@ -62,6 +62,47 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 ```mermaid
 flowchart LR
 
+subgraph INPUT
+A[tasks.csv]
+B[gaze_csv]
+end
+
+subgraph PREPROCESSING
+C[gaze_binned_FULL.csv]
+D[gaze_binned_CLEAN.csv]
+end
+
+subgraph METADATA
+E[gaze_binned_gender.csv]
+end
+
+A --> C
+B --> C
+C --> D --> E
+```
+
+### Workflow description
+
+1. **tasks.csv**  
+   Metadata file containing experimental sentences and illustration positions for each participant and trial.
+
+2. **gaze_csv**  
+   Raw gaze-coordinate predictions for all participants across experimental trials.
+
+3. **gaze_binned_FULL.csv**  
+   Merged dataset with aligned conditions, interpolated gaze trajectories, and equal time bins.
+
+4. **gaze_binned_CLEAN.csv**  
+   Dataset after exclusion of invalid participants and incorrect responses.
+
+5. **gaze_binned_gender.csv**  
+   Final dataset enriched with participant gender information from questionnaire metadata.
+
+
+
+```mermaid
+flowchart LR
+
 %% ===== COMMENTS =====
 
 A_note["Fajl u kome se nalaze metapodaci o prikazanim rečenicama i pozicijama ilustracija za datog ispitanika u datom *trial*-u"]
