@@ -11,22 +11,22 @@ Kako:
 1)  pol ispitanika
 2)  rod imenice 
 3)  glas kojim se imenica predstavlja 
-4)  pretižnost predstavljenog zanimanja 
+4)  prestižnost predstavljenog zanimanja 
 
 i(li) međusobna interakcija ovih faktora
 
 utiču na pokrete očiju ispitanika govornika_ca srpskog jezika?
 
-## Teorijsko-metodološka pozadina 📊 
+## Teorijsko-metodološka pozadina  
 
 📌 Psiholingvistička pilot-studija na srpskom jeziku, zasnovana na prethodnim istraživanjima koja pokazuju da pokreti očiju oslikavaju obradu jezika
 
-📌 Materijal: 12 rečenica sa imenicom nomino agentis u (a) muškom rodu, (b) ženskom rodu, koje su (6) prestižnih zanimanja i (6) neprestižnih zanimanja, svih pročitanih i muškim i ženskim glasom. 
+📌 Materijal: **12** rečenica sa imenicom nomino agentis u (a) muškom rodu, (b) ženskom rodu, koje su (6) prestižnih zanimanja i (6) neprestižnih zanimanja, svih pročitanih i muškim i ženskim glasom. 
 Ukupan materijal latinskim kvadratom raspoređen u dve verzije eksperimenta. 
 
 primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.*
 
-📌 Podaci prikupljeni u softveru za praćenje pokrera očiju u broswer-u (na bazi web-gaze-a) -- Gorilla Experiment Builder
+📌 Podaci prikupljeni u softveru za praćenje pokrera očiju u *broswer*-u (na bazi *web-gazer*-a) -- **Gorilla Experiment Builder**
 
 📌 Eksperimentalni ekran tokom kog su praćeni pokreti očiju:
 
@@ -52,18 +52,54 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 </td>
 </tr>
 </table>
-
-The project uses Growth Curve Analysis (GCA) in R to model gaze trajectories over time.
-
 ---
 
-## Project Workflow
+
+## 📊 Analiza podataka (pipeline analize)
+
+## Pretprocesiranje podataka (autput fajlova iz *Gorilla*-e)
+
+```mermaid
+flowchart LR
+
+%% ===== COMMENTS =====
+
+A_note["Fajl u kome se nalaze metapodaci o prikazanim rečenicama i pozicijama ilustracija za datog ispitanika u datom *trial*-u"]
+B_note["folder sa pojedinačnim koordinatama (tačnije predikcijama) pogleda za svakog ispitanika za sve eksperimentalne rečenice"]
+C_note["povezani uslovi za svakog ispitanika, pogled interpoliran i razdvojen na jednake vremenske intervale"]
+D_note["isključivanje nevalidnih ispitanika i netačnih pojedinačnih odgovora"]
+E_note["povezivanje pola ispitanika sa njihovim odgovorima na osnovu podataka iz data_exp_249742-v1_questionnaires.csv"]
+
+%% ===== MAIN NODES =====
+
+A[fajl **data_exp_249742-v1_tasks.csv**]
+B[data/raw/gaze_csv]
+C[gaze_binned_FULL.csv]
+D[gaze_binned_CLEAN.csv]
+E[gaze_binned_gender.csv]
+
+%% ===== FLOW =====
+
+A --> C 
+B --> C 
+C --> D --> E --> F --> G
+
+%% ===== COMMENT LINKS =====
+
+A_note -.-> A
+B_note -.-> B
+C_note -.-> C
+D_note -.-> D
+E_note -.-> E
+F_note -.-> F
+G_note -.-> G
+```
 
 ```mermaid
 flowchart LR
 
 %% =========================
-%% PREPROCESSING
+%% PRETPROCESIRANJE
 %% =========================
 
 subgraph PREPROCESSING
