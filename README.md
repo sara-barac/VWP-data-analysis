@@ -13,11 +13,6 @@ The project uses Growth Curve Analysis (GCA) in R to model gaze trajectories ove
 ```mermaid
 flowchart LR
 
-## Project Workflow
-
-```mermaid
-flowchart LR
-
 %% =========================
 %% PREPROCESSING
 %% =========================
