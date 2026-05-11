@@ -3,9 +3,9 @@
 ## Sažetak projekta
 
 Ovaj projekat predstavlja analizu podataka prikupljenih u okviru istraživanja sprovedenog u Istaživačkoj stanici Petnici krajem 2025. godine. 
-Sprovedeno je od strane polaznice Sare Tešić, pod mentorstvom Sare Barać i stručne naučne konsultantkinje dr Bojane Ristić. 
+Sprovedeno je od strane polaznice Sare Tešić, pod mentorstvom Sare Barać i stručne saradnice dr Bojane Ristić. 
 
-Sprovedena je longitudinalna analiza **(Growth Curve Analysis)** sa ciljem utvrđivanja:
+U ovom projektu je provedena longitudinalna analiza **(Growth Curve Analysis)** sa ciljem utvrđivanja:
 
 Kako:
 1)  pol ispitanika
@@ -53,6 +53,7 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 </tr>
 </table>
 ---
+
 ## 📊 Procedura i komentari o metodološkoj postvci eksperimenta:
 
 📌 rečenice raspoređene Latinskim kvadratom u dve verzije eksperimenta -- jedan ispitanik_ca videli sve uslove i sve rečenice, ali ne uvek u istom uslovu (kombinaciji nivoa kategoričkih varijabli)
@@ -63,35 +64,46 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 
 ## 📊 Izgled "raw" output-a
 
-1. data_exp_249742-v1_tasks.csv --> primer fajla: 
+1. **data_exp_249742-v1_tasks.csv** --> primer fajla: 
 
    Fajl sa metapodacima:
 
-   Participant Private ID: ključ identifikacije ispitanika
-   Response: kolona u kojoj se identifikuje a, b, c ili d "Area of interest (AoI)", odnosno segment ekrana u kome je ilustracija
+   _Participant Private ID:_ ključ identifikacije ispitanika
    
-   NB: Nomenklatura je posledica imenovanja kolona u samom Gorilla softveru, ovde kolone su sadržale informaciju o tome:
-   Spreadsheet: zanimanje m : šta je prikazano u gornjem levom uglu ekrana
-   Spreadsheet: zanimanje ž :  šta je prikazano u gornjem desnom uglu ekrana
-   Spreadsheet: predmet :  šta je prikazano u donjem levom uglu ekrana
-   Spreadsheet: dist :  šta je prikazano u donjem desnom uglu ekrana
+   _Response:_ kolona u kojoj se identifikuje **a, b, c** ili **d** "Area of interest (AoI)", odnosno segment ekrana u kome je ilustracija
+   
+   _NB: Nomenklatura je posledica imenovanja kolona u samom Gorilla softveru, ove kolone u .csv fajlu su sadržale informacije o tome:_
+   
+   _Spreadsheet: zanimanje m_ : šta je prikazano u gornjem levom uglu ekrana (dakle, koja imenica konkretno)
+   
+   _Spreadsheet: zanimanje ž_ :  šta je prikazano u gornjem desnom uglu ekrana
+   
+   _Spreadsheet: predmet_ :  šta je prikazano u donjem levom uglu ekrana
+   
+   _Spreadsheet: dist_:  šta je prikazano u donjem desnom uglu ekrana
 
-3. data_exp_249742-v1_questionnaires.csv --> primer fajla:
+2. **data_exp_249742-v1_questionnaires.csv** --> primer fajla:
 
-   Participant Private ID: ključ identifikacije ispitanika
-   Response: 1 - muški pol, 2 - ženski pol, 3 - ne želim da se izjasnim (kasnije isključeni iz analize)
+   _Participant Private ID_: ključ identifikacije ispitanika
+   
+   _Response:_ 1 - muški pol, 2 - ženski pol, 3 - ne želim da se izjasnim (kasnije isključeni iz analize)
 
-5. gaze_csv:
+3. **gaze_csv**:
 
    folder koji je sadržao .csv fajlove sa koordinatama predikcije (usled prirode funkcionisanja Gorilla-e) pogleda za svaku rečenicu za svakog ispitanika:
 
    249742-1-14607260-task-dqd7-50883952-calibration-1-2.csv (ekrani za kalibraciju pogleda -- nisu uključeni u analizu)
-   249742-1-14607260-task-dqd7-50883952-collection-3-2.csv  
+   
+   249742-1-14607260-task-dqd7-50883952-collection-3-2.csv
+   
    249742-1-14607260-task-dqd7-50883952-collection-4-2.csv
+   
    .
+   
    .
+   
    .
-
+   
    2849 fajlova   
 
 ## 📊 Analiza podataka (pipeline analize)
@@ -106,30 +118,43 @@ A[data_exp_249742-v1_tasks.csv]
 B[gaze_csv]
 end
 
-subgraph PRETPROCESIRANJE
-C[gaze_binned_FULL.csv]
+subgraph pretprocesiranje
+C[01_preprocess_TEST.R]
 end
 
-subgraph UKLANJANJE NEVALIDNIH ISPITANIKA
-D[gaze_binned_CLEAN.csv]
+subgraph BAZA PODATAKA
+D[gaze_binned_FULL.csv]
 end
 
-subgraph UKLJUČIVANJE POLA ISPITANIKA
-E[gaze_binned_gender.csv]
+subgraph uklanjanje nevalidnih ispitanika
+E[02_exclusions.R]
+end
+
+subgraph BAZA VALIDNIH ISPITANIKA
+F[gaze_binned_CLEAN.csv]
+end
+
+subgraph uvrštavanje pola ispitanika
+G[04_gender.R]
+end
+
+subgraph BAZA SA KODIRANIM POLOM ISP.
+H[gaze_binned_gender.csv]
 end
 
 A --> C
 B --> C
-C --> D --> E
+C --> D --> E --> F --> G --> H
+
 ```
 
 ### Tok pripreme baze podataka
 
 1. **data_exp_249742-v1_tasks.csv**  
-Fajl u kome se nalaze metapodaci o prikazanim rečenicama i pozicijama ilustracija za datog ispitanika u datom *trial*-u
+Iz ovog fajla izračunato za svaku rečenicu za svakog ispitanika --  koja je imenica (tačnije da li ŽNA, MNA, distraktor ili predmet) bila u kom AoI (a, b, c ili d). (cf. randomizacija prikazanih ilustracija)
 
 2. **gaze_csv**  
-folder sa pojedinačnim koordinatama (tačnije predikcijama) pogleda za svakog ispitanika za sve eksperimentalne rečenice"
+
 
 4. **gaze_binned_FULL.csv**  
 povezani uslovi za svakog ispitanika, pogled interpoliran i razdvojen na jednake vremenske intervale
