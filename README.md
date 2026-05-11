@@ -82,7 +82,7 @@ E[gaze_binned_gender.csv]
 
 A --> C 
 B --> C 
-C --> D --> E --> F --> G
+C --> D --> E 
 
 %% ===== COMMENT LINKS =====
 
@@ -91,8 +91,7 @@ B_note -.-> B
 C_note -.-> C
 D_note -.-> D
 E_note -.-> E
-F_note -.-> F
-G_note -.-> G
+
 ```
 
 ```mermaid
