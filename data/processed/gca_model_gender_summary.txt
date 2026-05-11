@@ -1,0 +1,72 @@
+GCA Model Summary — with participant gender
+Nomina agentis VWP — rod x glas x prestiznost x pol
+DV: empirical logit (ZNA vs MNA)
+Positive = more looks to female referent
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: 
+elogit ~ (ot1 + ot2) + rod_c + glas_c + prest_c + pol_c + rod_c:glas_c +  
+    rod_c:prest_c + glas_c:prest_c + rod_c:pol_c + glas_c:pol_c +  
+    prest_c:pol_c + ot1:rod_c + ot2:rod_c + ot1:glas_c + ot2:glas_c +  
+    ot1:prest_c + ot2:prest_c + ot1:pol_c + ot2:pol_c + ot1:rod_c:glas_c +  
+    ot2:rod_c:glas_c + ot1:rod_c:prest_c + ot2:rod_c:prest_c +  
+    ot1:glas_c:prest_c + ot2:glas_c:prest_c + ot1:rod_c:pol_c +  
+    ot2:rod_c:pol_c + ot1:glas_c:pol_c + ot2:glas_c:pol_c + ot1:prest_c:pol_c +  
+    ot2:prest_c:pol_c + (ot1 + ot2 | participant_id) + (1 | item_id)
+   Data: data
+Weights: weight
+Control: lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
+
+REML criterion at convergence: 521658.8
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.3401 -0.1188 -0.0010  0.1111  4.3085 
+
+Random effects:
+ Groups         Name        Variance Std.Dev. Corr        
+ participant_id (Intercept) 0.01283  0.1133               
+                ot1         0.26672  0.5165    0.11       
+                ot2         0.31833  0.5642   -0.17 -0.15 
+ item_id        (Intercept) 0.01048  0.1024               
+ Residual                   0.21228  0.4607               
+Number of obs: 198964, groups:  participant_id, 61; item_id, 56
+
+Fixed effects:
+                     Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)         8.429e-03  2.061e-02  1.050e+02   0.409 0.683371    
+ot1                -1.396e-01  7.340e-02  5.931e+01  -1.902 0.062085 .  
+ot2                -8.188e-03  7.958e-02  5.911e+01  -0.103 0.918403    
+rod_c               5.793e-02  2.769e-02  4.894e+01   2.092 0.041618 *  
+glas_c              8.244e-04  2.769e-02  4.894e+01   0.030 0.976368    
+prest_c             2.076e-02  2.769e-02  4.894e+01   0.750 0.456905    
+pol_c              -3.163e-02  3.082e-02  5.874e+01  -1.026 0.308943    
+rod_c:glas_c       -5.988e-03  5.531e-02  4.871e+01  -0.108 0.914235    
+rod_c:prest_c      -5.562e-03  5.531e-02  4.871e+01  -0.101 0.920318    
+glas_c:prest_c      4.193e-02  5.561e-02  4.922e+01   0.754 0.454404    
+rod_c:pol_c         2.711e-02  8.430e-03  1.987e+05   3.216 0.001301 ** 
+glas_c:pol_c        3.847e-02  8.432e-03  1.987e+05   4.562 5.06e-06 ***
+prest_c:pol_c      -8.943e-02  8.430e-03  1.987e+05 -10.609  < 2e-16 ***
+ot1:rod_c           3.786e-01  4.665e-02  1.987e+05   8.117 4.81e-16 ***
+ot2:rod_c           3.208e-01  4.700e-02  1.987e+05   6.827 8.69e-12 ***
+ot1:glas_c          1.404e-01  4.666e-02  1.988e+05   3.008 0.002627 ** 
+ot2:glas_c          8.016e-02  4.700e-02  1.988e+05   1.705 0.088117 .  
+ot1:prest_c        -1.535e-01  4.665e-02  1.988e+05  -3.291 0.000998 ***
+ot2:prest_c        -1.150e-01  4.700e-02  1.988e+05  -2.446 0.014450 *  
+ot1:pol_c          -9.329e-02  1.468e-01  5.931e+01  -0.635 0.527566    
+ot2:pol_c           5.978e-02  1.592e-01  5.911e+01   0.376 0.708557    
+ot1:rod_c:glas_c    5.493e-04  8.834e-02  1.987e+05   0.006 0.995039    
+ot2:rod_c:glas_c   -9.599e-02  8.908e-02  1.987e+05  -1.078 0.281249    
+ot1:rod_c:prest_c   2.436e-01  8.834e-02  1.988e+05   2.757 0.005835 ** 
+ot2:rod_c:prest_c   4.167e-01  8.909e-02  1.988e+05   4.677 2.91e-06 ***
+ot1:glas_c:prest_c  4.557e-01  8.934e-02  1.949e+05   5.100 3.39e-07 ***
+ot2:glas_c:prest_c  2.095e-01  9.010e-02  1.960e+05   2.325 0.020059 *  
+ot1:rod_c:pol_c    -1.761e-01  9.329e-02  1.987e+05  -1.888 0.059066 .  
+ot2:rod_c:pol_c    -2.874e-02  9.399e-02  1.987e+05  -0.306 0.759744    
+ot1:glas_c:pol_c    1.870e-02  9.332e-02  1.988e+05   0.200 0.841207    
+ot2:glas_c:pol_c    1.626e-03  9.400e-02  1.988e+05   0.017 0.986196    
+ot1:prest_c:pol_c   3.371e-01  9.329e-02  1.988e+05   3.613 0.000303 ***
+ot2:prest_c:pol_c   2.236e-02  9.399e-02  1.988e+05   0.238 0.811991    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1

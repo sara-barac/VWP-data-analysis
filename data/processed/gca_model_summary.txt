@@ -1,0 +1,58 @@
+GCA Model Summary
+Nomina agentis VWP — rod x glas x prestiznost
+DV: empirical logit (ZNA vs MNA looking)
+Positive values = more looks to female referent
+Negative values = more looks to male referent
+
+Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+lmerModLmerTest]
+Formula: elogit ~ (ot1 + ot2) + rod_c + glas_c + prest_c + rod_c:glas_c +  
+    rod_c:prest_c + glas_c:prest_c + ot1:rod_c + ot2:rod_c +  
+    ot1:glas_c + ot2:glas_c + ot1:prest_c + ot2:prest_c + ot1:rod_c:glas_c +  
+    ot2:rod_c:glas_c + ot1:rod_c:prest_c + ot2:rod_c:prest_c +  
+    ot1:glas_c:prest_c + ot2:glas_c:prest_c + (ot1 + ot2 | participant_id) +  
+    (1 | item_id)
+   Data: data
+Weights: weight
+Control: lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e+05))
+
+REML criterion at convergence: 537250.1
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.3837 -0.1180 -0.0030  0.1113  4.3349 
+
+Random effects:
+ Groups         Name        Variance Std.Dev. Corr        
+ participant_id (Intercept) 0.01479  0.1216               
+                ot1         0.27999  0.5291    0.22       
+                ot2         0.31105  0.5577   -0.08 -0.10 
+ item_id        (Intercept) 0.01047  0.1023               
+ Residual                   0.21123  0.4596               
+Number of obs: 205296, groups:  participant_id, 63; item_id, 56
+
+Fixed effects:
+                     Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)         2.761e-04  2.063e-02  1.082e+02   0.013  0.98935    
+ot1                -1.644e-01  7.012e-02  6.223e+01  -2.344  0.02228 *  
+ot2                -8.711e-03  7.360e-02  6.205e+01  -0.118  0.90617    
+rod_c               5.717e-02  2.762e-02  4.863e+01   2.070  0.04380 *  
+glas_c              1.153e-02  2.762e-02  4.863e+01   0.417  0.67816    
+prest_c             7.660e-03  2.762e-02  4.863e+01   0.277  0.78270    
+rod_c:glas_c       -1.423e-02  5.524e-02  4.863e+01  -0.258  0.79781    
+rod_c:prest_c       6.719e-03  5.524e-02  4.863e+01   0.122  0.90369    
+glas_c:prest_c      1.227e-02  5.555e-02  4.914e+01   0.221  0.82605    
+ot1:rod_c           3.565e-01  4.336e-02  2.051e+05   8.222  < 2e-16 ***
+ot2:rod_c           3.250e-01  4.372e-02  2.051e+05   7.434 1.06e-13 ***
+ot1:glas_c          1.298e-01  4.337e-02  2.051e+05   2.993  0.00276 ** 
+ot2:glas_c          4.756e-02  4.373e-02  2.051e+05   1.088  0.27679    
+ot1:prest_c        -1.390e-01  4.337e-02  2.051e+05  -3.206  0.00135 ** 
+ot2:prest_c        -1.299e-01  4.373e-02  2.051e+05  -2.970  0.00298 ** 
+ot1:rod_c:glas_c   -2.707e-02  8.673e-02  2.051e+05  -0.312  0.75492    
+ot2:rod_c:glas_c   -4.837e-02  8.745e-02  2.051e+05  -0.553  0.58017    
+ot1:rod_c:prest_c   2.194e-01  8.672e-02  2.051e+05   2.530  0.01141 *  
+ot2:rod_c:prest_c   4.327e-01  8.746e-02  2.051e+05   4.948 7.52e-07 ***
+ot1:glas_c:prest_c  4.036e-01  8.770e-02  2.018e+05   4.602 4.18e-06 ***
+ot2:glas_c:prest_c  1.514e-01  8.843e-02  2.024e+05   1.712  0.08689 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1

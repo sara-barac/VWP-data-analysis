@@ -1,0 +1,436 @@
+# ============================================================
+# SCRIPT 1 — TEST RUN (2 participants)
+# Nomina agentis VWP — rod x glas x prestiznost
+#
+# Reads all CSVs in data/raw/gaze_csv/
+# Reads metadata from data/raw/gorilla/
+# Outputs: data/processed/gaze_binned_TEST.csv
+# ============================================================
+
+# Free up memory and set larger cache
+gc()
+options(expressions = 5e5)
+
+# ---- 0. PACKAGES -------------------------------------------
+# Run this block ONCE if you have not installed these yet:
+# install.packages(c("readxl","dplyr","purrr","stringr","zoo","here"))
+
+library(readxl)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(zoo)
+library(here)
+
+
+# ---- 1. STIMULUS LISTS -------------------------------------
+
+mna_list <- c(
+  "lekar.png", "pekar.png", "konobar.png", "kasir.png",
+  "slikar.png", "postar.png", "bibliotekar.png", "hemicar.png",
+  "frizer.png", "krojac.png", "apotekarr.png", "novinar.png",
+  "zubar.png", "advokat.png"
+)
+
+zna_list <- c(
+  "lekarka.png", "pekarka.png", "konobarica.png", "kasirka.png",
+  "slikarka.png", "postarka.png", "bibliotekarka.png", "hemicarka.png",
+  "frizerka.png", "krojacica.png", "apotekarrka.png", "novinarka.png",
+  "zubarka.png", "advokatica.png"
+)
+
+predmet_list <- c(
+  "metalofon.png", "punjac.png", "poklon.png", "cekic.png",
+  "telefon.png", "radio.png", "akvarijum.png", "papir.png",
+  "novcanik.png", "album.png", "hleb.png", "rostilj.png",
+  "svetionik.png", "trosed.png"
+)
+
+dist_list <- c(
+  "lak za nokte.png", "peskir.png", "kamera.png", "kosilica.png",
+  "lopta.png", "viljuskar.png", "slusalice.png", "racunar.png",
+  "patike.png", "skije.png", "flasa.png", "klavir.png",
+  "avion.png", "lula.png"
+)
+
+classify_image <- function(img) {
+  img <- tolower(trimws(as.character(img)))
+  if (img %in% mna_list)     return("MNA")
+  if (img %in% zna_list)     return("ZNA")
+  if (img %in% predmet_list) return("predmet")
+  if (img %in% dist_list)    return("dist")
+  return(NA_character_)
+}
+
+
+# ---- 2. LOAD & FILTER METADATA -----------------------------
+cat("Loading metadata...\n")
+
+
+metadata_raw <- read.csv(
+  here("data", "raw", "gorilla", "data_exp_249742-v1_tasks.csv"), 
+  stringsAsFactors = FALSE,
+  encoding = "UTF-8"
+)
+
+cat("  Total rows in metadata:", nrow(metadata_raw), "\n")
+cat("  Columns with 'zanimanje':",
+    paste(grep("zanimanje", names(metadata_raw), value = TRUE),
+          collapse = ", "), "\n")
+cat("  Columns with 'presti':",
+    paste(grep("presti", names(metadata_raw),
+               value = TRUE, ignore.case = TRUE),
+          collapse = ", "), "\n\n")
+
+# FIX 1: Detect column names safely regardless of encoding.
+# When R reads the xlsx, Serbian characters (ž, š, č) may appear
+# garbled. We grep() for the stable part of each name instead
+# of hardcoding the exact string.
+col_zan_m   <- grep("zanimanje\\.m",  names(metadata_raw),
+                    value = TRUE)[1]
+col_zan_z   <- grep("zanimanje\\.",   names(metadata_raw),
+                    value = TRUE)[
+                    !grepl("zanimanje\\.m",
+                           grep("zanimanje\\.", names(metadata_raw),
+                                value = TRUE))][1]
+col_predmet <- grep("\\.predmet",     names(metadata_raw),
+                    value = TRUE)[1]
+col_dist    <- grep("\\.dist",        names(metadata_raw),
+                    value = TRUE)[1]
+col_rod     <- grep("\\.rod",         names(metadata_raw),
+                    value = TRUE)[1]
+col_glas    <- grep("\\.glas",        names(metadata_raw),
+                    value = TRUE)[1]
+col_prest   <- grep("presti",         names(metadata_raw),
+                    value = TRUE, ignore.case = TRUE)[1]
+col_redni   <- grep("redni",          names(metadata_raw),
+                    value = TRUE)[1]
+
+cat("Column mapping resolved:\n")
+cat("  zanimanje m  ->", col_zan_m,   "\n")
+cat("  zanimanje z  ->", col_zan_z,   "\n")
+cat("  predmet      ->", col_predmet, "\n")
+cat("  dist         ->", col_dist,    "\n")
+cat("  rod          ->", col_rod,     "\n")
+cat("  glas         ->", col_glas,    "\n")
+cat("  prestiznost  ->", col_prest,   "\n")
+cat("  redni_broj   ->", col_redni,   "\n\n")
+
+# FIX 2: Filter to experimental trials, Screen 2, action rows only.
+# This is the only place in the script where metadata is filtered —
+# the process_gaze_file() function will use this pre-filtered lookup.
+metadata_action <- metadata_raw %>%
+  filter(
+    Display          == "eksperimentalni_deo",
+    Screen           == "Screen 2",
+    Response.Type  == "action"
+  ) %>%
+  rename(
+    participant_id = Participant.Private.ID,
+    trial_number   = Trial.Number,
+    rod            = !!col_rod,
+    glas           = !!col_glas,
+    prestiznost    = !!col_prest,
+    item_id        = !!col_redni,
+    img_a          = !!col_zan_m,
+    img_b          = !!col_zan_z,
+    img_c          = !!col_predmet,
+    img_d          = !!col_dist
+  ) %>%
+  # Convert participant_id to character for safe joining
+  mutate(participant_id = as.character(participant_id), 
+         prestiznost = ifelse(prestiznost == "z", "n", prestiznost)
+)
+
+cat("Experimental action rows found:", nrow(metadata_action), "\n")
+cat("Participants in metadata:",
+    length(unique(metadata_action$participant_id)), "\n\n")
+
+
+# ---- 3. BUILD TRIAL LOOKUP TABLE ---------------------------
+# One row per participant x trial — classifies each zone's image
+
+trial_lookup <- metadata_action %>%
+  distinct(participant_id, trial_number, item_id,
+           rod, glas, prestiznost,
+           img_a, img_b, img_c, img_d) %>%
+
+    mutate(prestiznost = ifelse(prestiznost == "z", "n", prestiznost)
+  ) %>%
+  mutate(
+    role_a = map_chr(img_a, classify_image),
+    role_b = map_chr(img_b, classify_image),
+    role_c = map_chr(img_c, classify_image),
+    role_d = map_chr(img_d, classify_image)
+  )
+
+cat("Trial lookup built:", nrow(trial_lookup), "rows\n")
+
+# Sanity check: every trial must have exactly one of each role
+role_check <- trial_lookup %>%
+  rowwise() %>%
+  mutate(role_set = paste(sort(c(role_a, role_b, role_c, role_d)),
+                          collapse = "-")) %>%
+  ungroup() %>%
+  count(role_set)
+
+cat("\nRole-set check (should be only 'MNA-ZNA-dist-predmet'):\n")
+print(role_check)
+
+# Flag any NA classifications (diacritic mismatches in filenames)
+na_rows <- trial_lookup %>%
+  filter(if_any(c(role_a, role_b, role_c, role_d), is.na))
+if (nrow(na_rows) > 0) {
+  cat("\nWARNING:", nrow(na_rows),
+      "trials have unclassified images.\n")
+  cat("Check these image names against your stimulus lists:\n")
+  print(na_rows %>% select(participant_id, trial_number,
+                            img_a, img_b, img_c, img_d,
+                            role_a, role_b, role_c, role_d))
+} else {
+  cat("\nAll images classified successfully.\n")
+}
+cat("\n")
+
+
+# ---- 4. GAZE FILE PROCESSING FUNCTION ----------------------
+
+process_gaze_file <- function(filepath, lookup, bin_size = 50) {
+
+  # Read the CSV
+  df <- tryCatch(
+    read.csv(filepath, stringsAsFactors = FALSE),
+    error = function(e) NULL
+    )   
+  if (is.null(df) || nrow(df) == 0) return(NULL)
+
+  # FIX 3: Skip non-experimental files INSIDE the function.
+  # Practice, calibration and instruction screens all land in
+  # the same folder — we must filter them out here.
+  display_vals <- unique(df$Display)
+  if (!"eksperimentalni_deo" %in% display_vals) return(NULL)
+  
+  # Extract identifiers from the data itself (never from filename)
+  participant_id <- as.character(unique(df$Participant.Private.ID))
+  trial_number   <- unique(df$Trial.Number)
+
+  # Some files may contain multiple trial numbers — should not
+  # happen for per-sentence files, but guard against it
+  if (length(trial_number) > 1) return(NULL)
+  
+
+    # --- Zone coordinates ---
+  zones <- df %>%
+    filter(
+      Type == "zone",
+      Zone.Name %in% c("TopLeft", "TopRight", "BottomLeft", "BottomRight")
+    ) %>%
+    select(Zone.Name, Zone.X, Zone.Y, Zone.W, Zone.H) %>%
+    mutate(zone_label = recode(Zone.Name,
+                               "TopLeft"     = "a",
+                               "TopRight"    = "b",
+                               "BottomLeft"  = "c",
+                               "BottomRight" = "d"))
+
+  if (nrow(zones) == 0) return(NULL)
+  
+
+  # --- Gaze prediction rows ---
+  preds <- df %>%
+    filter(Type == "prediction") %>%
+    select(
+      Elapsed,
+      gaze_x = Predicted.Gaze.X,
+      gaze_y = Predicted.Gaze.Y
+    ) %>%
+    filter(!is.na(gaze_x), !is.na(gaze_y)) %>%
+    arrange(Elapsed) %>%
+    distinct(Elapsed, .keep_all = TRUE)   # remove duplicate timestamps
+
+  if (nrow(preds) < 5) return(NULL)
+  
+  # --- Interpolate to uniform 50 ms grid ---
+  time_grid <- seq(min(preds$Elapsed), max(preds$Elapsed), by = 10)
+
+  gaze_interp <- data.frame(
+    elapsed = time_grid,
+    gaze_x  = approx(preds$Elapsed, preds$gaze_x,
+                     xout = time_grid, method = "linear", rule = 1)$y,
+    gaze_y  = approx(preds$Elapsed, preds$gaze_y,
+                     xout = time_grid, method = "linear", rule = 1)$y
+  )
+
+  # --- Classify each gaze point into a zone ---
+  classify_gaze_point <- function(x, y, zones_df) {
+    if (is.na(x) || is.na(y)) return("none")
+    for (i in seq_len(nrow(zones_df))) {
+      z <- zones_df[i, ]
+      if (x >= z$Zone.X && x <= (z$Zone.X + z$Zone.W) &&
+          y >= z$Zone.Y && y <= (z$Zone.Y + z$Zone.H)) {
+        return(z$zone_label)
+      }
+    }
+    return("none")
+  }
+
+  gaze_interp$zone_hit <- mapply(
+    classify_gaze_point,
+    gaze_interp$gaze_x,
+    gaze_interp$gaze_y,
+    MoreArgs = list(zones_df = zones)
+  )
+
+  # --- Look up roles for this participant x trial ---
+  # FIX 4: participant_id converted to character in both
+  # lookup and here, so the join is always type-safe
+  trial_info <- lookup %>%
+    filter(
+      participant_id == !!participant_id,
+      trial_number   == !!trial_number
+    ) %>%
+    as.data.frame() %>%
+    head(1)
+
+  if (nrow(trial_info) == 0) {
+    cat("  WARNING: no metadata match — participant", participant_id,
+        "trial", trial_number, "skipping\n")
+    return(NULL)
+  }
+
+  # Map zone label -> AOI role
+  role_map <- c(
+    "a"    = trial_info$role_a,
+    "b"    = trial_info$role_b,
+    "c"    = trial_info$role_c,
+    "d"    = trial_info$role_d,
+    "none" = "none"
+  )
+  gaze_interp$aoi_role <- recode(gaze_interp$zone_hit, !!!role_map)
+
+  # --- Bin into 50 ms bins ---
+  gaze_binned <- gaze_interp %>%
+    mutate(time_bin = floor(elapsed / bin_size) * bin_size) %>%
+    group_by(time_bin) %>%
+    summarise(
+      n_MNA     = sum(aoi_role == "MNA",     na.rm = TRUE),
+      n_ZNA     = sum(aoi_role == "ZNA",     na.rm = TRUE),
+      n_predmet = sum(aoi_role == "predmet", na.rm = TRUE),
+      n_dist    = sum(aoi_role == "dist",    na.rm = TRUE),
+      n_none    = sum(aoi_role == "none",    na.rm = TRUE),
+      n_total   = n(),
+      .groups   = "drop"
+    ) %>%
+    mutate(
+      # Empirical logit — positive = more looks to female referent
+      elogit = log((n_ZNA + 0.5) / (n_MNA + 0.5)),
+      # Weight = inverse variance (used in GCA model)
+      weight = 1 / ((1 / (n_ZNA + 0.5)) + (1 / (n_MNA + 0.5))),
+      # Attach identifiers and IVs
+      participant_id = participant_id,
+      trial_number   = trial_number,
+      item_id        = trial_info$item_id,    # FIX 5: added item_id
+      rod            = trial_info$rod,
+      glas           = trial_info$glas,
+      prestiznost    = trial_info$prestiznost
+    )
+
+  return(gaze_binned)
+}
+
+
+# ---- 5. FIND AND PROCESS CSV FILES -------------------------
+cat("\n--- FINDING FILES ---\n")
+
+all_files <- list.files(
+  path       = here("data", "raw", "gaze_csv"),
+  pattern    = "\\.csv$",
+  full.names = TRUE
+)
+cat("Total CSV files found:", length(all_files), "\n\n")
+
+# ---- 6. RUN PIPELINE ---------------------------------------
+n_files   <- length(all_files)
+data_list <- vector("list", n_files)
+
+cat("Starting processing of", n_files, "files...\n")
+t_start <- Sys.time()
+
+for (i in seq_along(all_files)) {
+
+  data_list[[i]] <- process_gaze_file(all_files[[i]], trial_lookup,
+                                       bin_size = 50)
+
+  # Print progress every 100 files
+
+  if (i %% 100 == 0 || i == n_files) {
+    elapsed <- round(difftime(Sys.time(), t_start, units = "mins"), 1)
+    n_done  <- sum(!sapply(data_list[1:i], is.null))
+    cat(sprintf("  [%d / %d] %.1f min elapsed | %d experimental files processed\n",
+                i, n_files, as.numeric(elapsed), n_done))
+  }
+}
+
+cat("\n--- COMBINING RESULTS ---\n")
+
+data_all <- data_list %>%
+  compact() %>%           # drop NULLs (skipped files)
+  bind_rows()
+
+cat("Final data dimensions:", nrow(data_all), "rows x",
+    ncol(data_all), "cols\n")
+cat("Participants processed:",
+    length(unique(data_all$participant_id)), "\n")
+cat("Trials processed:",
+    length(unique(paste(data_all$participant_id,
+                        data_all$trial_number))), "\n")
+cat("Time bins per trial (approx):",
+    round(nrow(data_all) /
+            length(unique(paste(data_all$participant_id,
+                                data_all$trial_number)))), "\n\n")
+
+# Quick check: elogit range (should be roughly -3 to +3)
+cat("Elogit summary:\n")
+print(summary(data_all$elogit))
+
+# Check for any NA elogits
+n_na <- sum(is.na(data_all$elogit))
+if (n_na > 0) cat("WARNING:", n_na, "NA elogit values\n")
+
+# ---- 7. EXPORT ---------------------------------------------
+output_path <- here("data", "processed", "gaze_binned_FULL.csv")
+
+write.csv(data_all, output_path, row.names = FALSE)
+
+cat("\nExported to:", output_path, "\n")
+cat("\nFirst few rows:\n")
+print(head(data_all, 10))
+
+cat("\n=== TEST RUN COMPLETE ===\n")
+cat("Open data/processed/gaze_binned_TEST.csv to inspect the output.\n")
+cat("If everything looks correct, run 01_preprocess_FULL.R\n")
+cat("on all participants.\n")
+
+# Check n_none across time to diagnose coordinate issue
+library(ggplot2)
+
+none_over_time <- data_all %>%
+  group_by(time_bin) %>%
+  summarise(
+    prop_none = mean(n_none / n_total),
+    .groups = "drop"
+  )
+
+ggplot(none_over_time, aes(x = time_bin, y = prop_none)) +
+  geom_line(colour = "steelblue", linewidth = 1) +
+  geom_hline(yintercept = 0.75, linetype = "dashed", colour = "red") +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+  labs(
+    title = "Proportion of gaze outside all AOIs over time",
+    subtitle = "If this stays flat at ~75% throughout, check zone coordinates",
+    x = "Time bin (ms)",
+    y = "Proportion n_none"
+  ) +
+  theme_minimal()
+
+ggsave(here("data", "processed", "diagnostic_n_none.png"),
+       width = 8, height = 4)
