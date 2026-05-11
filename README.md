@@ -40,7 +40,7 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 
 <td width="60%">
 
-### primer eksperimentalnog ektrana
+### primer eksperimentalnog ekrana
 
 Četiri ilustracije su bile prikazivane na ekranu, uvek randomizovane: 
 1) ilustracija zanimanja muškog pola
@@ -53,11 +53,50 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 </tr>
 </table>
 ---
+## 📊 Procedura i komentari o metodološkoj postvci eksperimenta:
 
+📌 rečenice raspoređene Latinskim kvadratom u dve verzije eksperimenta -- jedan ispitanik_ca videli sve uslove i sve rečenice, ali ne uvek u istom uslovu (kombinaciji nivoa kategoričkih varijabli)
+
+📌 imenica nomina agentis uvek na kraju rečenice, izgovarana muškim i ženskim glasom
+
+📌 ilustracije prikazivane randomizovano u za svakog ispitanika za svaku rečenicu kako bi se izbegao efekat uvežbavanja ispitanika 
+
+## 📊 Izgled "raw" output-a
+
+1. data_exp_249742-v1_tasks.csv --> primer fajla: 
+
+   Fajl sa metapodacima:
+
+   Participant Private ID: ključ identifikacije ispitanika
+   Response: kolona u kojoj se identifikuje a, b, c ili d "Area of interest (AoI)", odnosno segment ekrana u kome je ilustracija
+   
+   NB: Nomenklatura je posledica imenovanja kolona u samom Gorilla softveru, ovde kolone su sadržale informaciju o tome:
+   Spreadsheet: zanimanje m : šta je prikazano u gornjem levom uglu ekrana
+   Spreadsheet: zanimanje ž :  šta je prikazano u gornjem desnom uglu ekrana
+   Spreadsheet: predmet :  šta je prikazano u donjem levom uglu ekrana
+   Spreadsheet: dist :  šta je prikazano u donjem desnom uglu ekrana
+
+3. data_exp_249742-v1_questionnaires.csv --> primer fajla:
+
+   Participant Private ID: ključ identifikacije ispitanika
+   Response: 1 - muški pol, 2 - ženski pol, 3 - ne želim da se izjasnim (kasnije isključeni iz analize)
+
+5. gaze_csv:
+
+   folder koji je sadržao .csv fajlove sa koordinatama predikcije (usled prirode funkcionisanja Gorilla-e) pogleda za svaku rečenicu za svakog ispitanika:
+
+   249742-1-14607260-task-dqd7-50883952-calibration-1-2.csv (ekrani za kalibraciju pogleda -- nisu uključeni u analizu)
+   249742-1-14607260-task-dqd7-50883952-collection-3-2.csv  
+   249742-1-14607260-task-dqd7-50883952-collection-4-2.csv
+   .
+   .
+   .
+
+   2849 fajlova   
 
 ## 📊 Analiza podataka (pipeline analize)
 
-## Pretprocesiranje podataka (autput fajlova iz *Gorilla*-e)
+## Pretprocesiranje podataka
 
 ```mermaid
 flowchart LR
@@ -67,15 +106,15 @@ A[data_exp_249742-v1_tasks.csv]
 B[gaze_csv]
 end
 
-subgraph PREPROCESSING
+subgraph PRETPROCESIRANJE
 C[gaze_binned_FULL.csv]
 end
 
-subgraph cleaning nonvalid trials
+subgraph UKLANJANJE NEVALIDNIH ISPITANIKA
 D[gaze_binned_CLEAN.csv]
 end
 
-subgraph ANALYSIS
+subgraph UKLJUČIVANJE POLA ISPITANIKA
 E[gaze_binned_gender.csv]
 end
 
@@ -84,135 +123,37 @@ B --> C
 C --> D --> E
 ```
 
-### Workflow description
+### Tok pripreme baze podataka
 
-1. **tasks.csv**  
-   Metadata file containing experimental sentences and illustration positions for each participant and trial.
+1. **data_exp_249742-v1_tasks.csv**  
+Fajl u kome se nalaze metapodaci o prikazanim rečenicama i pozicijama ilustracija za datog ispitanika u datom *trial*-u
 
 2. **gaze_csv**  
-   Raw gaze-coordinate predictions for all participants across experimental trials.
+folder sa pojedinačnim koordinatama (tačnije predikcijama) pogleda za svakog ispitanika za sve eksperimentalne rečenice"
 
-3. **gaze_binned_FULL.csv**  
-   Merged dataset with aligned conditions, interpolated gaze trajectories, and equal time bins.
+4. **gaze_binned_FULL.csv**  
+povezani uslovi za svakog ispitanika, pogled interpoliran i razdvojen na jednake vremenske intervale
 
-4. **gaze_binned_CLEAN.csv**  
-   Dataset after exclusion of invalid participants and incorrect responses.
+6. **gaze_binned_CLEAN.csv**  
+isključivanje nevalidnih ispitanika i netačnih pojedinačnih odgovora
 
-5. **gaze_binned_gender.csv**  
-   Final dataset enriched with participant gender information from questionnaire metadata.
-
-
-
-```mermaid
-flowchart LR
-
-%% ===== COMMENTS =====
-
-A_note["Fajl u kome se nalaze metapodaci o prikazanim rečenicama i pozicijama ilustracija za datog ispitanika u datom *trial*-u"]
-B_note["folder sa pojedinačnim koordinatama (tačnije predikcijama) pogleda za svakog ispitanika za sve eksperimentalne rečenice"]
-C_note["povezani uslovi za svakog ispitanika, pogled interpoliran i razdvojen na jednake vremenske intervale"]
-D_note["isključivanje nevalidnih ispitanika i netačnih pojedinačnih odgovora"]
-E_note["povezivanje pola ispitanika sa njihovim odgovorima na osnovu podataka iz data_exp_249742-v1_questionnaires.csv"]
-
-%% ===== MAIN NODES =====
-
-A[fajl **data_exp_249742-v1_tasks.csv**]
-B[data/raw/gaze_csv]
-C[gaze_binned_FULL.csv]
-D[gaze_binned_CLEAN.csv]
-E[gaze_binned_gender.csv]
-
-%% ===== FLOW =====
-
-A --> C 
-B --> C 
-C --> D --> E 
-
-%% ===== COMMENT LINKS =====
-
-A_note -.-> A
-B_note -.-> B
-C_note -.-> C
-D_note -.-> D
-E_note -.-> E
-
-```
-
-```mermaid
-flowchart LR
-
-%% =========================
-%% PRETPROCESIRANJE
-%% =========================
-
-subgraph PREPROCESSING
-
-A_note["Remove calibration files<br/>Exclude invalid recordings"]
-A[Raw Tobii CSV files]
-
-B_note["Extract experimental trials<br/>Keep relevant events only"]
-B[Trial extraction]
-
-C_note["Assign AOIs<br/>Prepare fixation coordinates"]
-C[AOI processing]
-
-D_note["Synchronize timestamps<br/>Align gaze samples"]
-D[Time alignment]
-
-end
-
-%% =========================
-%% TRANSFORMATION
-%% =========================
-
-subgraph TRANSFORMATION
-
-E_note["Aggregate gaze data<br/>Create time bins"]
-E[Time binning]
-
-F_note["Calculate fixation proportions<br/>Target vs competitor"]
-F[Fixation proportions]
-
-G_note["Stabilize variance<br/>Empirical logit transformation"]
-G[Empirical logits]
-
-end
-
-%% =========================
-%% ANALYSIS
-%% =========================
-
-subgraph ANALYSIS
-
-H_note["Fit mixed-effects models<br/>Growth Curve Analysis"]
-H[Growth Curve Analysis]
-
-I_note["Generate plots<br/>Interpret trajectory dynamics"]
-I[Visualization]
-
-end
-
-%% =========================
-%% MAIN FLOW
-%% =========================
-
-A --> B --> C --> D --> E --> F --> G --> H --> I
-
-%% =========================
-%% COMMENT LINKS
-%% =========================
-
-A_note -.-> A
-B_note -.-> B
-C_note -.-> C
-D_note -.-> D
-E_note -.-> E
-F_note -.-> F
-G_note -.-> G
-H_note -.-> H
-I_note -.-> I
-```
+8. **gaze_binned_gender.csv**  
+povezivanje pola ispitanika sa njihovim odgovorima na osnovu podataka iz data_exp_249742-v1_questionnaires.csv
 ---
+
+```mermaid
+flowchart LR
+
+A[gaze_binned_CLEAN.csv]
+
+A -->|Main analysis| B[model_main.R]
+A -->|Gender analysis| C[gaze_binned_gender.csv]
+
+C --> D[model_gender.R]
+
+B --> E[Base GCA model]
+D --> F[Gender-extended GCA model]
+```
 
 ## Repository Structure
 
