@@ -13,31 +13,71 @@ The project uses Growth Curve Analysis (GCA) in R to model gaze trajectories ove
 ```mermaid
 flowchart LR
 
-%% ===== COMMENTS =====
+## Project Workflow
 
-A_note["Remove calibration files<br/>Filter invalid recordings"]
-B_note["Extract relevant trials<br/>Keep experimental events only"]
-C_note["Assign AOIs<br/>Prepare fixation coordinates"]
-D_note["Aggregate gaze samples<br/>Create time bins"]
-E_note["Compute fixation proportions<br/>Target vs competitor"]
-F_note["Stabilize variance<br/>Empirical logit transform"]
-G_note["Fit mixed-effects GCA models<br/>Generate visualizations"]
+```mermaid
+flowchart LR
 
-%% ===== MAIN NODES =====
+%% =========================
+%% PREPROCESSING
+%% =========================
 
+subgraph PREPROCESSING
+
+A_note["Remove calibration files<br/>Exclude invalid recordings"]
 A[Raw Tobii CSV files]
+
+B_note["Extract experimental trials<br/>Keep relevant events only"]
 B[Trial extraction]
+
+C_note["Assign AOIs<br/>Prepare fixation coordinates"]
 C[AOI processing]
-D[Time binning]
-E[Fixation proportions]
-F[Empirical logits]
-G[Growth Curve Analysis]
 
-%% ===== FLOW =====
+D_note["Synchronize timestamps<br/>Align gaze samples"]
+D[Time alignment]
 
-A --> B --> C --> D --> E --> F --> G
+end
 
-%% ===== COMMENT LINKS =====
+%% =========================
+%% TRANSFORMATION
+%% =========================
+
+subgraph TRANSFORMATION
+
+E_note["Aggregate gaze data<br/>Create time bins"]
+E[Time binning]
+
+F_note["Calculate fixation proportions<br/>Target vs competitor"]
+F[Fixation proportions]
+
+G_note["Stabilize variance<br/>Empirical logit transformation"]
+G[Empirical logits]
+
+end
+
+%% =========================
+%% ANALYSIS
+%% =========================
+
+subgraph ANALYSIS
+
+H_note["Fit mixed-effects models<br/>Growth Curve Analysis"]
+H[Growth Curve Analysis]
+
+I_note["Generate plots<br/>Interpret trajectory dynamics"]
+I[Visualization]
+
+end
+
+%% =========================
+%% MAIN FLOW
+%% =========================
+
+A --> B --> C --> D --> E --> F --> G --> H --> I
+
+%% =========================
+%% COMMENT LINKS
+%% =========================
 
 A_note -.-> A
 B_note -.-> B
@@ -46,6 +86,8 @@ D_note -.-> D
 E_note -.-> E
 F_note -.-> F
 G_note -.-> G
+H_note -.-> H
+I_note -.-> I
 ```
 ---
 
