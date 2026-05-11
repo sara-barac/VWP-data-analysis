@@ -62,17 +62,20 @@ primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.
 ```mermaid
 flowchart LR
 
-subgraph INPUT
-A[tasks.csv]
+subgraph INPUT podaci
+A[data_exp_249742-v1_tasks.csv]
 B[gaze_csv]
 end
 
 subgraph PREPROCESSING
 C[gaze_binned_FULL.csv]
+end
+
+subgraph cleaning nonvalid trials
 D[gaze_binned_CLEAN.csv]
 end
 
-subgraph METADATA
+subgraph ANALYSIS
 E[gaze_binned_gender.csv]
 end
 
