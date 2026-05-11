@@ -11,19 +11,42 @@ The project uses Growth Curve Analysis (GCA) in R to model gaze trajectories ove
 ## Project Workflow
 
 ```mermaid
-flowchart TD
+flowchart LR
 
-A[Raw Tobii ET5 CSV files] --> B[Data cleaning]
-B --> C[Calibration file removal]
-C --> D[Trial extraction]
-D --> E[AOI processing]
-E --> F[Time binning]
-F --> G[Fixation proportion calculation]
-G --> H[Empirical logit transformation]
-H --> I[Growth Curve Analysis]
-I --> J[Visualization and statistics]
+%% ===== COMMENTS =====
+
+A_note["Remove calibration files<br/>Filter invalid recordings"]
+B_note["Extract relevant trials<br/>Keep experimental events only"]
+C_note["Assign AOIs<br/>Prepare fixation coordinates"]
+D_note["Aggregate gaze samples<br/>Create time bins"]
+E_note["Compute fixation proportions<br/>Target vs competitor"]
+F_note["Stabilize variance<br/>Empirical logit transform"]
+G_note["Fit mixed-effects GCA models<br/>Generate visualizations"]
+
+%% ===== MAIN NODES =====
+
+A[Raw Tobii CSV files]
+B[Trial extraction]
+C[AOI processing]
+D[Time binning]
+E[Fixation proportions]
+F[Empirical logits]
+G[Growth Curve Analysis]
+
+%% ===== FLOW =====
+
+A --> B --> C --> D --> E --> F --> G
+
+%% ===== COMMENT LINKS =====
+
+A_note -.-> A
+B_note -.-> B
+C_note -.-> C
+D_note -.-> D
+E_note -.-> E
+F_note -.-> F
+G_note -.-> G
 ```
-
 ---
 
 ## Repository Structure
