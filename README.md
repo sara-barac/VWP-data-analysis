@@ -1,8 +1,57 @@
-# Gender Bias in Visual Word Processing
+# Predikcije tokom kognitivne obrade muških i ženskih nomina agentis u srpskom jeziku – na preseku pola, roda i prestižnosti
 
-## Overview
+## Sažetak projekta
 
-This repository contains the preprocessing pipeline, statistical analyses, and visualizations for a Visual World Paradigm (VWP) eye-tracking study investigating the interaction between grammatical gender, prestige, voice, and participant gender during online referent processing in Serbian.
+Ovaj projekat predstavlja analizu podataka prikupljenih u okviru istraživanja sprovedenog u Istaživačkoj stanici Petnici krajem 2025. godine. 
+Sprovedeno je od strane polaznice Sare Tešić, pod mentorstvom Sare Barać i stručne naučne konsultantkinje dr Bojane Ristić. 
+
+Sprovedena je longitudinalna analiza **(Growth Curve Analysis)** sa ciljem utvrđivanja:
+
+Kako:
+1)  pol ispitanika
+2)  rod imenice 
+3)  glas kojim se imenica predstavlja 
+4)  pretižnost predstavljenog zanimanja 
+
+i(li) međusobna interakcija ovih faktora
+
+utiču na pokrete očiju ispitanika govornika_ca srpskog jezika?
+
+## Teorijsko-metodološka pozadina 📊 
+
+📌 Psiholingvistička pilot-studija na srpskom jeziku, zasnovana na prethodnim istraživanjima koja pokazuju da pokreti očiju oslikavaju obradu jezika
+
+📌 Materijal: 12 rečenica sa imenicom nomino agentis u (a) muškom rodu, (b) ženskom rodu, koje su (6) prestižnih zanimanja i (6) neprestižnih zanimanja, svih pročitanih i muškim i ženskim glasom. 
+Ukupan materijal latinskim kvadratom raspoređen u dve verzije eksperimenta. 
+
+primer stimulusne rečenice: *Akvarijum će pre godišnjeg napuniti bibliotekar.*
+
+📌 Podaci prikupljeni u softveru za praćenje pokrera očiju u broswer-u (na bazi web-gaze-a) -- Gorilla Experiment Builder
+
+📌 Eksperimentalni ekran tokom kog su praćeni pokreti očiju:
+
+<table>
+<tr>
+<td width="40%">
+
+<img src="pictures/example_screen.png" width="100%">
+
+</td>
+
+<td width="60%">
+
+### primer eksperimentalnog ektrana
+
+Četiri ilustracije su bile prikazivane na ekranu, uvek randomizovane: 
+1) ilustracija zanimanja muškog pola
+2) ilustracija zanimanja ženskog pola
+3) predmet-objekat sadržan u eksperimentalnoj rečenici
+4) distraktor predmet
+
+
+</td>
+</tr>
+</table>
 
 The project uses Growth Curve Analysis (GCA) in R to model gaze trajectories over time.
 
