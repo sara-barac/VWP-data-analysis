@@ -1,5 +1,5 @@
 # ============================================================
-# SCRIPT 1 — TEST RUN (2 participants)
+# SCRIPT 1 
 # Nomina agentis VWP — rod x glas x prestiznost
 #
 # Reads all CSVs in data/raw/gaze_csv/
@@ -12,7 +12,6 @@ gc()
 options(expressions = 5e5)
 
 # ---- 0. PACKAGES -------------------------------------------
-# Run this block ONCE if you have not installed these yet:
 # install.packages(c("readxl","dplyr","purrr","stringr","zoo","here"))
 
 library(readxl)
@@ -24,6 +23,7 @@ library(here)
 
 
 # ---- 1. STIMULUS LISTS -------------------------------------
+# assigning the list of images to their categories levels 
 
 mna_list <- c(
   "lekar.png", "pekar.png", "konobar.png", "kasir.png",
@@ -82,10 +82,8 @@ cat("  Columns with 'presti':",
                value = TRUE, ignore.case = TRUE),
           collapse = ", "), "\n\n")
 
-# FIX 1: Detect column names safely regardless of encoding.
-# When R reads the xlsx, Serbian characters (ž, š, č) may appear
-# garbled. We grep() for the stable part of each name instead
-# of hardcoding the exact string.
+# 1: Detect column names safely regardless of encoding.
+
 col_zan_m   <- grep("zanimanje\\.m",  names(metadata_raw),
                     value = TRUE)[1]
 col_zan_z   <- grep("zanimanje\\.",   names(metadata_raw),
@@ -116,10 +114,8 @@ cat("  glas         ->", col_glas,    "\n")
 cat("  prestiznost  ->", col_prest,   "\n")
 cat("  redni_broj   ->", col_redni,   "\n\n")
 
-# FIX 2: Filter to experimental trials, Screen 2, action rows only.
-# This is the only place in the script where metadata is filtered —
-# the process_gaze_file() function will use this pre-filtered lookup.
-metadata_action <- metadata_raw %>%
+# 2: Filter to experimental trials, Screen 2, action rows only.
+
   filter(
     Display          == "eksperimentalni_deo",
     Screen           == "Screen 2",
@@ -204,9 +200,8 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
     )   
   if (is.null(df) || nrow(df) == 0) return(NULL)
 
-  # FIX 3: Skip non-experimental files INSIDE the function.
-  # Practice, calibration and instruction screens all land in
-  # the same folder — we must filter them out here.
+  # 3: Skip non-experimental files INSIDE the function.
+  # Practice, calibration and instruction screens filtered out
   display_vals <- unique(df$Display)
   if (!"eksperimentalni_deo" %in% display_vals) return(NULL)
   
@@ -219,7 +214,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
   if (length(trial_number) > 1) return(NULL)
   
 
-    # --- Zone coordinates ---
+  # --- Zone coordinates ---
   zones <- df %>%
     filter(
       Type == "zone",
@@ -404,33 +399,3 @@ write.csv(data_all, output_path, row.names = FALSE)
 cat("\nExported to:", output_path, "\n")
 cat("\nFirst few rows:\n")
 print(head(data_all, 10))
-
-cat("\n=== TEST RUN COMPLETE ===\n")
-cat("Open data/processed/gaze_binned_TEST.csv to inspect the output.\n")
-cat("If everything looks correct, run 01_preprocess_FULL.R\n")
-cat("on all participants.\n")
-
-# Check n_none across time to diagnose coordinate issue
-library(ggplot2)
-
-none_over_time <- data_all %>%
-  group_by(time_bin) %>%
-  summarise(
-    prop_none = mean(n_none / n_total),
-    .groups = "drop"
-  )
-
-ggplot(none_over_time, aes(x = time_bin, y = prop_none)) +
-  geom_line(colour = "steelblue", linewidth = 1) +
-  geom_hline(yintercept = 0.75, linetype = "dashed", colour = "red") +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  labs(
-    title = "Proportion of gaze outside all AOIs over time",
-    subtitle = "If this stays flat at ~75% throughout, check zone coordinates",
-    x = "Time bin (ms)",
-    y = "Proportion n_none"
-  ) +
-  theme_minimal()
-
-ggsave(here("data", "processed", "diagnostic_n_none.png"),
-       width = 8, height = 4)
