@@ -1,29 +1,27 @@
 # ============================================================
-# SCRIPT 02 — EXCLUSIONS
-# Nomina agentis VWP — rod x glas x prestiznost
-#
-# WHAT THIS SCRIPT DOES:
-#   1. Reads Screen 3 responses from the Gorilla metadata
-#   2. Uses Gorilla's pre-computed Correct column (1/0)
-#   3. Computes accuracy per participant
-#   4. Excludes participants below 90% accuracy threshold
-#   5. Excludes individual incorrect trials for remaining participants
-#   6. Saves the clean dataset and an exclusion report
+# SKRIPTA 2 — Isključivanje ispitanika i netačnih odgovora
+# 
+# Ova skripta:
+#   1. ulitava screen 3 (ekran gde su ispitanici davali odgovore na kontrolna pitanja)
+#   2. računa tačnost po ispitaniku
+#   3. isključuje ispitanike sa manje od 90% tačnosti
+#   4. isključuje pojedinačne trial-e na kojima su dati netačni odgovori
+#   5. čuva prečišćen dataset
 #
 # INPUT:  data/processed/gaze_binned_FULL.csv
 #         data/raw/gorilla/data_exp_249742-v1_tasks.csv
 #
-# OUTPUT: data/processed/gaze_binned_CLEAN.csv
+# AUTPUT: data/processed/gaze_binned_CLEAN.csv
 #         data/processed/exclusion_report.csv
 # ============================================================
 
 
-# ---- 0. PACKAGES -------------------------------------------
+# ---- 0. biblioteke -------------------------------------------
 library(dplyr)
 library(here)
 
 
-# ---- 1. LOAD DATA ------------------------------------------
+# ---- 1. učitavanje podataka ------------------------------------------
 cat("Loading preprocessed gaze data...\n")
 
 gaze <- read.csv(

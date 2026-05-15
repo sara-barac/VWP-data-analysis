@@ -134,7 +134,7 @@ cat("  redni_broj   ->", col_redni,   "\n\n")
     img_c          = !!col_predmet,
     img_d          = !!col_dist
   ) %>%
-  # ujednačavanje formata na karakter zarad sigurnije operacije "join" kasnije
+  # ujednačavanje formata na string zarad sigurnije operacije "join" kasnije
   mutate(participant_id = as.character(participant_id), 
          prestiznost = ifelse(prestiznost == "z", "n", prestiznost) #greška "z" u samom kodiranju u eksperimentu, rekodiranje na tačnu oznaku
 )
@@ -145,7 +145,7 @@ cat("Participants in metadata:",
 
 
 # ---- 3. TABELA ODGOVARAJUĆIH VREDNOSTI ZA AoIs ---------------------------
-# svaki red ogovaraa jednoj rečenici jednog ispitanika u kome je ukodirano  koja kategorija imenice je prikazana
+# svaki red ogovara jednoj rečenici jednog ispitanika u kome je ukodirano koja kategorija imenice je prikazana
 
 trial_lookup <- metadata_action %>%
   distinct(participant_id, trial_number, item_id,
