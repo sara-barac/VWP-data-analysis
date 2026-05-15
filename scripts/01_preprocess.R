@@ -174,7 +174,7 @@ role_check <- trial_lookup %>%
 cat("\nRole-set check (should be only 'MNA-ZNA-dist-predmet'):\n")
 print(role_check)
 
-# Flag any NA classifications (diacritic mismatches in filenames)
+# provera da li su sve kategorije uspešno klasifikovane (da li ima NA vrednosti)
 na_rows <- trial_lookup %>%
   filter(if_any(c(role_a, role_b, role_c, role_d), is.na))
 if (nrow(na_rows) > 0) {
@@ -189,33 +189,31 @@ if (nrow(na_rows) > 0) {
 }
 cat("\n")
 
-
-# ---- 4. GAZE FILE PROCESSING FUNCTION ----------------------
+# ---- 4. FUNKCIJA ZA OBRADU POJEDINAČNOG GAZE FAJLA----------------------
 
 process_gaze_file <- function(filepath, lookup, bin_size = 50) {
 
-  # Read the CSV
+  # učitavanje .csv fajla
   df <- tryCatch(
     read.csv(filepath, stringsAsFactors = FALSE),
     error = function(e) NULL
     )   
   if (is.null(df) || nrow(df) == 0) return(NULL)
 
-  # 3: Skip non-experimental files INSIDE the function.
-  # Practice, calibration and instruction screens filtered out
+  # 3: isključivanje svih "skrinova" koji nisu eksperimentalni deo (npr. uputstva, kalibracija, vežbe-triali)
+  
   display_vals <- unique(df$Display)
   if (!"eksperimentalni_deo" %in% display_vals) return(NULL)
   
-  # Extract identifiers from the data itself (never from filename)
+  # identifikovanje ključa ispitanika i broja rečenice (eksperimentalnog stimulusnog ajtema)
   participant_id <- as.character(unique(df$Participant.Private.ID))
   trial_number   <- unique(df$Trial.Number)
 
-  # Some files may contain multiple trial numbers — should not
-  # happen for per-sentence files, but guard against it
+  # za slučaj da jedan fajl ima dupliran broj ajtema, biranje prvog (safety net korak, ne bi trebalo da postoji takav fajl)
   if (length(trial_number) > 1) return(NULL)
   
 
-  # --- Zone coordinates ---
+  # --- dodeliti svakoj zoni njen label (a-d) i sačuvati koordinate ---
   zones <- df %>%
     filter(
       Type == "zone",
@@ -231,7 +229,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
   if (nrow(zones) == 0) return(NULL)
   
 
-  # --- Gaze prediction rows ---
+  # --- identifikacija redova sa predikcijama koordinata pogleda (cf. gorilla experiment builder) ---
   preds <- df %>%
     filter(Type == "prediction") %>%
     select(
@@ -241,11 +239,11 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
     ) %>%
     filter(!is.na(gaze_x), !is.na(gaze_y)) %>%
     arrange(Elapsed) %>%
-    distinct(Elapsed, .keep_all = TRUE)   # remove duplicate timestamps
+    distinct(Elapsed, .keep_all = TRUE)   # uklanjanje vremenskih duplikata (ako postoje)
 
   if (nrow(preds) < 5) return(NULL)
   
-  # --- Interpolate to uniform 50 ms grid ---
+  # --- interpoliranje vremenskih intervala u jednake intervale od 50ms ---
   time_grid <- seq(min(preds$Elapsed), max(preds$Elapsed), by = 10)
 
   gaze_interp <- data.frame(
@@ -256,7 +254,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
                      xout = time_grid, method = "linear", rule = 1)$y
   )
 
-  # --- Classify each gaze point into a zone ---
+  # --- klasifikacija svake predviđene tačke u zonu a,b,c ili d ---
   classify_gaze_point <- function(x, y, zones_df) {
     if (is.na(x) || is.na(y)) return("none")
     for (i in seq_len(nrow(zones_df))) {
@@ -276,9 +274,8 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
     MoreArgs = list(zones_df = zones)
   )
 
-  # --- Look up roles for this participant x trial ---
-  # FIX 4: participant_id converted to character in both
-  # lookup and here, so the join is always type-safe
+    # --- uvezivanje koordinata sa time koja slika je u datoj zoni
+    # predstavljena u svakoj rečenici ovom ispitaniku ---
   trial_info <- lookup %>%
     filter(
       participant_id == !!participant_id,
@@ -293,7 +290,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
     return(NULL)
   }
 
-  # Map zone label -> AOI role
+  # povezivanje zona x kategorija slike-imenice
   role_map <- c(
     "a"    = trial_info$role_a,
     "b"    = trial_info$role_b,
@@ -303,7 +300,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
   )
   gaze_interp$aoi_role <- recode(gaze_interp$zone_hit, !!!role_map)
 
-  # --- Bin into 50 ms bins ---
+  # --- "binning" u vremenske intervale od 50ms ---
   gaze_binned <- gaze_interp %>%
     mutate(time_bin = floor(elapsed / bin_size) * bin_size) %>%
     group_by(time_bin) %>%
@@ -318,13 +315,14 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
     ) %>%
     mutate(
       # Empirical logit — positive = more looks to female referent
+      #zavisna varijabla -- logaritam odnosa pogleda prema ZNA i MNA (pozitivan = više pogleda prema ZNA)
       elogit = log((n_ZNA + 0.5) / (n_MNA + 0.5)),
-      # Weight = inverse variance (used in GCA model)
+      # Težina - inverzna varijansa
       weight = 1 / ((1 / (n_ZNA + 0.5)) + (1 / (n_MNA + 0.5))),
-      # Attach identifiers and IVs
+      # uvezivanje nezavisnih varijabli iz metapodataka
       participant_id = participant_id,
       trial_number   = trial_number,
-      item_id        = trial_info$item_id,    # FIX 5: added item_id
+      item_id        = trial_info$item_id,    
       rod            = trial_info$rod,
       glas           = trial_info$glas,
       prestiznost    = trial_info$prestiznost
@@ -334,7 +332,7 @@ process_gaze_file <- function(filepath, lookup, bin_size = 50) {
 }
 
 
-# ---- 5. FIND AND PROCESS CSV FILES -------------------------
+# ---- 5. učitavanje svih .csv fajlova -------------------------
 cat("\n--- FINDING FILES ---\n")
 
 all_files <- list.files(
@@ -344,7 +342,7 @@ all_files <- list.files(
 )
 cat("Total CSV files found:", length(all_files), "\n\n")
 
-# ---- 6. RUN PIPELINE ---------------------------------------
+# ---- 6. PIPELINE (pozivanje funkcije za sve fajlove)---------------------------------------
 n_files   <- length(all_files)
 data_list <- vector("list", n_files)
 
@@ -356,7 +354,7 @@ for (i in seq_along(all_files)) {
   data_list[[i]] <- process_gaze_file(all_files[[i]], trial_lookup,
                                        bin_size = 50)
 
-  # Print progress every 100 files
+  # provera: update o napretku na svakih 100 fajlova
 
   if (i %% 100 == 0 || i == n_files) {
     elapsed <- round(difftime(Sys.time(), t_start, units = "mins"), 1)
@@ -369,7 +367,7 @@ for (i in seq_along(all_files)) {
 cat("\n--- COMBINING RESULTS ---\n")
 
 data_all <- data_list %>%
-  compact() %>%           # drop NULLs (skipped files)
+  compact() %>%           
   bind_rows()
 
 cat("Final data dimensions:", nrow(data_all), "rows x",
@@ -384,15 +382,15 @@ cat("Time bins per trial (approx):",
             length(unique(paste(data_all$participant_id,
                                 data_all$trial_number)))), "\n\n")
 
-# Quick check: elogit range (should be roughly -3 to +3)
+# opseg logaritma (provera ekstremni vrednosti)
 cat("Elogit summary:\n")
 print(summary(data_all$elogit))
 
-# Check for any NA elogits
+# provera da li ima NA vrednosti u koloni logaritma (zavisne varijabe)
 n_na <- sum(is.na(data_all$elogit))
 if (n_na > 0) cat("WARNING:", n_na, "NA elogit values\n")
 
-# ---- 7. EXPORT ---------------------------------------------
+# ---- 7. eksportovanje u fajl sa rezultatima ------------------------------
 output_path <- here("data", "processed", "gaze_binned_FULL.csv")
 
 write.csv(data_all, output_path, row.names = FALSE)
