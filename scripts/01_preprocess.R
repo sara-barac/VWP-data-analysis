@@ -1,17 +1,17 @@
 # ============================================================
-# SCRIPT 1 
-# Nomina agentis VWP — rod x glas x prestiznost
+# SKRIPTA 1:
 #
-# Reads all CSVs in data/raw/gaze_csv/
-# Reads metadata from data/raw/gorilla/
-# Outputs: data/processed/gaze_binned_TEST.csv
+# 1. učitava sve .csv-ove iz foldera data/raw/gaze_csv/
+# 2. učitava metapodatke iz odgovarajućeg fajla iz foldera data/raw/gorilla/
+# 
+# AUTPUT: data/processed/gaze_binned_TEST.csv
 # ============================================================
 
-# Free up memory and set larger cache
+#oslobadjanje memorije zarad bržeg izvršenja skripte
 gc()
 options(expressions = 5e5)
 
-# ---- 0. PACKAGES -------------------------------------------
+# ---- 0. BIBLIOTEKE -------------------------------------------
 # install.packages(c("readxl","dplyr","purrr","stringr","zoo","here"))
 
 library(readxl)
@@ -22,8 +22,9 @@ library(zoo)
 library(here)
 
 
-# ---- 1. STIMULUS LISTS -------------------------------------
-# assigning the list of images to their categories levels 
+# ---- 1. LISTA STIMULUSNIH IMENICA -------------------------------------
+# kategorizacija svih imenica u odgovarajuću kategoriju (predstavljene su četiri: muška/ženska nomina agentis,
+# predmet sadržan u rečenici i distraktor predmet)
 
 mna_list <- c(
   "lekar.png", "pekar.png", "konobar.png", "kasir.png",
@@ -63,7 +64,7 @@ classify_image <- function(img) {
 }
 
 
-# ---- 2. LOAD & FILTER METADATA -----------------------------
+# ---- 2. UČITAVANJE I FILTRIRANJE METAPODATAKA -----------------------------
 cat("Loading metadata...\n")
 
 
@@ -82,7 +83,7 @@ cat("  Columns with 'presti':",
                value = TRUE, ignore.case = TRUE),
           collapse = ", "), "\n\n")
 
-# 1: Detect column names safely regardless of encoding.
+# 1: Identifikovanje imena kolona (regex kao sigurnosna mera)
 
 col_zan_m   <- grep("zanimanje\\.m",  names(metadata_raw),
                     value = TRUE)[1]
@@ -114,7 +115,7 @@ cat("  glas         ->", col_glas,    "\n")
 cat("  prestiznost  ->", col_prest,   "\n")
 cat("  redni_broj   ->", col_redni,   "\n\n")
 
-# 2: Filter to experimental trials, Screen 2, action rows only.
+# 2: Čuvanje samo redova koji odgovaraju eksperimentalnom delu (screen 2 koji sadrže response type "action")
 
   filter(
     Display          == "eksperimentalni_deo",
@@ -133,9 +134,9 @@ cat("  redni_broj   ->", col_redni,   "\n\n")
     img_c          = !!col_predmet,
     img_d          = !!col_dist
   ) %>%
-  # Convert participant_id to character for safe joining
+  # ujednačavanje formata na karakter zarad sigurnije operacije "join" kasnije
   mutate(participant_id = as.character(participant_id), 
-         prestiznost = ifelse(prestiznost == "z", "n", prestiznost)
+         prestiznost = ifelse(prestiznost == "z", "n", prestiznost) #greška "z" u samom kodiranju u eksperimentu, rekodiranje na tačnu oznaku
 )
 
 cat("Experimental action rows found:", nrow(metadata_action), "\n")
@@ -143,8 +144,8 @@ cat("Participants in metadata:",
     length(unique(metadata_action$participant_id)), "\n\n")
 
 
-# ---- 3. BUILD TRIAL LOOKUP TABLE ---------------------------
-# One row per participant x trial — classifies each zone's image
+# ---- 3. TABELA ODGOVARAJUĆIH VREDNOSTI ZA AoIs ---------------------------
+# svaki red ogovaraa jednoj rečenici jednog ispitanika u kome je ukodirano  koja kategorija imenice je prikazana
 
 trial_lookup <- metadata_action %>%
   distinct(participant_id, trial_number, item_id,
@@ -162,7 +163,7 @@ trial_lookup <- metadata_action %>%
 
 cat("Trial lookup built:", nrow(trial_lookup), "rows\n")
 
-# Sanity check: every trial must have exactly one of each role
+# provera: svaka rečenica ima tačno jednu kategoriju po prikazanoj poziciji (a - d)
 role_check <- trial_lookup %>%
   rowwise() %>%
   mutate(role_set = paste(sort(c(role_a, role_b, role_c, role_d)),

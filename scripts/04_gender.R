@@ -31,7 +31,6 @@ library(here)
 # ---- 1. LOAD QUESTIONNAIRE FILE ----------------------------
 cat("Loading questionnaire data...\n")
 
-# !! EDIT THIS LINE if your questionnaire file has a different name
 questionnaire_raw <- read.csv(
   here("data", "raw", "gorilla",
        "data_exp_249742-v1_questionnaires.csv"),
