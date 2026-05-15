@@ -150,10 +150,18 @@ C --> D --> E --> F --> G --> H
 
 ### Tok pripreme baze podataka
 
-1. **data_exp_249742-v1_tasks.csv**  
-Iz ovog fajla izračunato za svaku rečenicu za svakog ispitanika --  koja je imenica (tačnije da li ŽNA, MNA, distraktor ili predmet) bila u kom AoI (a, b, c ili d). (cf. randomizacija prikazanih ilustracija)
+1. **01_preprocess.R**  
 
-2. **gaze_csv**  
+✅ ujednačava randomizovane stimuluse -- iz fajla (1) izvlači koja je ilustracija prikazana u kom segmentu ekrana i to ukršta sa odgovarajućim koordinatama pogleda 
+   iz fajla u kome su logovani pogledi za tu rečenicu iz foldera (3), uzevši u obzir svakog ispitanika i njegov jedinstveni raspored
+   
+✅ interpolira neujednačene vremenske intervale u jednake zarad mogućnosti primene modela 
+
+✅ računa vrednost zavisne varijable za svaki eksperimentalni trial: logaritam odnosa pogleda prema ženskim i muškim ilustracijama 
+
+✅ čuva rezultat u fajlu **gaze_binned_FULL.csv**
+
+2. 02_exclusions.R
 
 
 4. **gaze_binned_FULL.csv**  
