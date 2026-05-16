@@ -185,12 +185,3 @@ C --> D --> E --> F --> G --> H
 
  
 ---
-
-
----
-
-## Author
-
-Sara Barać
-
-Faculty project repository.

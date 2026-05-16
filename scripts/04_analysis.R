@@ -1,18 +1,14 @@
 # ============================================================
-# SCRIPT 04 — GCA ANALYSIS + PLOTS
-# Nomina agentis VWP — rod x glas x prestiznost x pol
+# SKRIPTA 4 — GCA ANALIZA I PLOTOVANJE
 #
-# WHAT THIS SCRIPT DOES:
-#   1. Loads the final gender-merged dataset
-#   2. Effect-codes all four factors
-#   3. Creates orthogonal polynomial time terms
-#   4. Fits the full GCA model
-#   5. Saves model summary
-#   6. Exports all final publication-ready plots
+# Ova skripta:
+#   1. izvršava GCA fitovanje modela i analizu
+#   2. čuva model i sažetak rezultata
+#   3. vizualizuje ključne efekte kroz četiri grafika
 #
 # INPUT:  data/processed/gaze_binned_GENDER.csv
 #
-# OUTPUT: data/processed/gca_model_summary.txt
+# AUTPUT: data/processed/gca_model_summary.txt
 #         data/processed/gca_model.rds
 #         data/processed/plots/plot_01_rod.png
 #         data/processed/plots/plot_02_rod_x_prest.png
@@ -21,7 +17,7 @@
 # ============================================================
 
 
-# ---- 0. PACKAGES -------------------------------------------
+# ---- 0. paketi i učitavanje biblioteka ----------------------------
 # install.packages(c("lme4","lmerTest","ggplot2","dplyr","here"))
 
 library(lme4)
@@ -32,10 +28,10 @@ library(here)
 
 
 # ============================================================
-# SECTION A — DATA PREPARATION
+# A — PRIPREMA PODATAKA
 # ============================================================
 
-# ---- 1. LOAD DATA ------------------------------------------
+# ---- 1. učitavanje podataka ------------------------------------------
 cat("Loading final dataset...\n")
 
 data <- read.csv(
@@ -52,7 +48,7 @@ cat("  Time bins:", length(unique(data$time_bin)),
     "(", min(data$time_bin), "to",
     max(data$time_bin), "ms)\n\n")
 
-# Verify all condition columns are present and correct
+
 cat("Condition value checks:\n")
 cat("  rod:        ", paste(unique(data$rod), collapse=", "), "\n")
 cat("  glas:       ", paste(unique(data$glas), collapse=", "), "\n")
@@ -60,11 +56,8 @@ cat("  prestiznost:", paste(unique(data$prestiznost), collapse=", "), "\n")
 cat("  pol:        ", paste(unique(data$pol), collapse=", "), "\n\n")
 
 
-# ---- 2. EFFECT CODING --------------------------------------
-# Effect coding -.5 / +.5 means the intercept = grand mean
-# and main effects are interpretable in the presence of interactions
-#
-# Coding:
+# ---- 2. kodiranje efekata  --------------------------------------
+# 
 #   rod:   MNA = -0.5  |  ZNA     = +0.5
 #   glas:  muski = -0.5  |  zenski = +0.5
 #   prest: n = -0.5    |  p       = +0.5
@@ -86,7 +79,7 @@ cat("  glas:  muski=-0.5 | zenski=+0.5\n")
 cat("  prest: n=-0.5     | p=+0.5\n")
 cat("  pol:   zenski=-0.5 | muski=+0.5\n\n")
 
-# Verify distributions
+# provera distribucije kodiranih vrednosti
 cat("rod_c:\n");   print(table(data$rod, data$rod_c))
 cat("glas_c:\n");  print(table(data$glas, data$glas_c))
 cat("prest_c:\n"); print(table(data$prestiznost, data$prest_c))
@@ -94,10 +87,9 @@ cat("pol_c:\n");   print(table(data$pol, data$pol_c))
 cat("\n")
 
 
-# ---- 3. ORTHOGONAL POLYNOMIAL TIME TERMS -------------------
-# ot1 = linear time  (does looking rise or fall?)
-# ot2 = quadratic    (does looking curve up or down?)
-# Orthogonal = uncorrelated, makes estimation stable
+# ---- 3. ortogonalni polinomski vremenski termini -------------------
+# ot1 = linearni termin (pravac krive)  
+# ot2 = kvadratni termin (zakrivljenost krive)
 
 time_vals <- sort(unique(data$time_bin))
 time_poly <- poly(time_vals, degree = 2)
@@ -119,11 +111,10 @@ cat("  ot2 range:", round(min(data$ot2), 3),
 
 
 # ============================================================
-# SECTION B — MODEL
+#  B — MODEL
 # ============================================================
 
-# ---- 4. FIT GCA MODEL --------------------------------------
-# Model loads from disk if already fitted (saves time on reruns)
+# ---- 4. fitovanje GCA modela ----------------------------------
 
 model_path <- here("data", "processed", "gca_model.rds")
 
@@ -139,47 +130,42 @@ if (file.exists(model_path)) {
   model <- lmer(
     elogit ~
 
-      # Time terms
       (ot1 + ot2) +
 
-      # Main effects of all four factors
+      # glavni efekti
       rod_c + glas_c + prest_c + pol_c +
 
-      # Two-way interactions among stimulus factors
+      # dvostruke interacije faktora vezanih za stimuluse
       rod_c:glas_c +
       rod_c:prest_c +
       glas_c:prest_c +
 
-      # Two-way interactions of participant gender
-      # with each stimulus factor
+      # dvostruke interakcije faktora pola sa onima vezanih za stimuluse
       rod_c:pol_c +
       glas_c:pol_c +
       prest_c:pol_c +
 
-      # Time x main effects
-      # These test whether conditions differ in their looking curves
+      # Interakcija vreme x glavni faktori
+     
       ot1:rod_c   + ot2:rod_c +
       ot1:glas_c  + ot2:glas_c +
       ot1:prest_c + ot2:prest_c +
       ot1:pol_c   + ot2:pol_c +
 
-      # Time x two-way interactions (stimulus factors)
+      # vreme  x dvofaktorske interakcije 
       ot1:rod_c:glas_c  + ot2:rod_c:glas_c +
       ot1:rod_c:prest_c + ot2:rod_c:prest_c +
       ot1:glas_c:prest_c + ot2:glas_c:prest_c +
 
-      # Time x two-way interactions (participant gender)
-      # KEY NEW EFFECTS: does participant gender modulate
-      # how stimulus factors drive prediction over time?
+      # vreme x interakcije pola i faktora vezanih za stimuluse
       ot1:rod_c:pol_c   + ot2:rod_c:pol_c +
       ot1:glas_c:pol_c  + ot2:glas_c:pol_c +
       ot1:prest_c:pol_c + ot2:prest_c:pol_c +
 
       # Random effects
-      # By-participant: each person has their own baseline
-      # and their own looking curve shape
+      # po ispitaniku
       (ot1 + ot2 | participant_id) +
-      # By-item: each occupation has its own baseline
+      # po itemu
       (1 | item_id),
 
     data    = data,
@@ -191,13 +177,13 @@ if (file.exists(model_path)) {
     )
   )
 
-  # Save model so future runs skip the fitting step
+  # čuvanje modela za buduće korišćenje (izbegavanje ponovnog fitovanja)
   saveRDS(model, model_path)
   cat("Model fitted and saved.\n\n")
 }
 
 
-# ---- 5. CONVERGENCE CHECK ----------------------------------
+# ---- 5. provera da li model konvergira ----------------------------------
 cat("=== CONVERGENCE CHECK ===\n")
 if (length(model@optinfo$conv$lme4) > 0) {
   cat("WARNING: convergence issues detected.\n")
@@ -209,12 +195,12 @@ if (length(model@optinfo$conv$lme4) > 0) {
 }
 
 
-# ---- 6. MODEL SUMMARY --------------------------------------
+# ---- 6. sažetak modela--------------------------------------
 cat("=== MODEL SUMMARY ===\n\n")
 model_summary <- summary(model)
 print(model_summary)
 
-# Save full summary to text file
+# čuvanje u .txt fajlu
 summary_path <- here("data", "processed", "gca_model_summary.txt")
 sink(summary_path)
 cat("GCA Model Summary\n")
@@ -228,7 +214,7 @@ sink()
 cat("\nFull summary saved to:", summary_path, "\n\n")
 
 
-# ---- 7. KEY EFFECTS TABLE ----------------------------------
+# ---- 7. sažetak efekata faktora ------------------------------
 cat("=== KEY FIXED EFFECTS ===\n\n")
 
 fe <- as.data.frame(coef(summary(model)))
@@ -266,14 +252,14 @@ print(as.data.frame(
 
 
 # ============================================================
-# SECTION C — PLOTS
+# C — PLOTOVANJE
 # ============================================================
 
-# Create plots folder
+
 dir.create(here("data", "processed", "plots"),
            showWarnings = FALSE)
 
-# Shared plot theme — consistent look across all plots
+
 theme_vwp <- theme_minimal(base_size = 13) +
   theme(
     legend.position  = "bottom",
@@ -281,7 +267,6 @@ theme_vwp <- theme_minimal(base_size = 13) +
     panel.grid.minor = element_blank()
   )
 
-# Shared colour scale for noun gender
 colour_rod <- scale_colour_manual(
   values = c("MNA" = "#2166ac", "ZNA" = "#d6604d"),
   labels = c("MNA" = "Masculine noun (MNA)",
@@ -296,9 +281,7 @@ fill_rod <- scale_fill_manual(
 cat("\n--- Generating plots ---\n")
 
 
-# ---- PLOT 1: Main effect of rod ----------------------------
-# Your clearest finding — grammatical gender drives prediction
-# MNA line drops below zero, ZNA stays above
+# ---- PLOT 1: EKEFAT RODA IMENICE ----------------------------
 
 p1_data <- data %>%
   group_by(time_bin, rod) %>%
@@ -333,9 +316,7 @@ ggsave(here("data", "processed", "plots", "plot_01_rod.png"),
 cat("  plot_01_rod.png saved\n")
 
 
-# ---- PLOT 2: rod x prestiznost -----------------------------
-# The grammatical gender effect is amplified for prestigious
-# occupations — male-prestige stereotype
+# ---- PLOT 2: rod x prestižnost -----------------------------
 
 p2_data <- data %>%
   group_by(time_bin, rod, prestiznost) %>%
@@ -427,8 +408,6 @@ cat("  plot_03_rod_x_pol.png saved\n")
 
 
 # ---- PLOT 4: rod x prestiznost x pol -----------------------
-# The full prestige x participant gender interaction —
-# male participants show stronger male-prestige stereotyping
 
 p4_data <- data %>%
   group_by(time_bin, rod, prestiznost, pol) %>%
@@ -474,7 +453,7 @@ cat("  plot_04_rod_x_prest_x_pol.png saved\n")
 
 
 # ============================================================
-# SECTION D — FINAL SUMMARY
+# D — sažetak analize
 # ============================================================
 
 cat("\n=== SCRIPT 04 COMPLETE ===\n\n")
