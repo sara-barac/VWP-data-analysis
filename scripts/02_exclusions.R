@@ -2,7 +2,7 @@
 # SKRIPTA 2 — Isključivanje ispitanika i netačnih odgovora
 # 
 # Ova skripta:
-#   1. ulitava screen 3 (ekran gde su ispitanici davali odgovore na kontrolna pitanja)
+#   1. učitava screen 3 (ekran gde su ispitanici davali odgovore na kontrolna pitanja)
 #   2. računa tačnost po ispitaniku
 #   3. isključuje ispitanike sa manje od 90% tačnosti
 #   4. isključuje pojedinačne trial-e na kojima su dati netačni odgovori
@@ -46,17 +46,13 @@ meta <- read.csv(
 cat("  Total metadata rows:", nrow(meta), "\n\n")
 
 
-# ---- 2. EXTRACT SCREEN 3 RESPONSES -------------------------
-# Screen 3 = the comprehension question screen
-# Participant pressed 'da' or 'ne'
-# Gorilla already scored this in the 'Correct' column:
-#   1 = participant's response matched Spreadsheet: correct_anwser
-#   0 = it did not
+# ---- 2. izvlačenje odgovora ---------------------
+# u koloni "Correct" su ukodirani tačni (1) i netačni (0) odgovori
+
 
 cat("Extracting comprehension question responses...\n")
 
-# Detect the correct answer column name safely
-# (handles encoding differences across machines)
+
 col_correct <- grep("correct_anwser",
                     names(meta),
                     value       = TRUE,
@@ -64,7 +60,7 @@ col_correct <- grep("correct_anwser",
 
 cat("  Correct answer column detected:", col_correct, "\n")
 
-# Extract Screen 3 response rows from experimental trials only
+# izvlačenje odgovora samo iz eksperimentalnih trial-a
 responses <- meta %>%
   filter(
     Display       == "eksperimentalni_deo",
@@ -81,9 +77,7 @@ responses <- meta %>%
     participant_id   = as.character(participant_id),
     participant_resp = tolower(trimws(participant_resp)),
     correct_answer   = tolower(trimws(correct_answer)),
-    # Use Gorilla's own pre-computed scoring
-    # Correct == 1 means the participant was right
-    # Correct == 0 means the participant was wrong
+      
     is_correct       = Correct == 1
   ) %>%
   select(participant_id, trial_number,
@@ -94,7 +88,7 @@ cat("  Total comprehension responses found:", nrow(responses), "\n")
 cat("  Overall accuracy rate:",
     round(100 * mean(responses$is_correct, na.rm = TRUE), 1), "%\n\n")
 
-# Sanity checks
+# provere kodiranosti odgovora ("safety" mera)
 cat("  Unique participant responses (should be 'da' and 'ne'):\n")
 print(table(responses$participant_resp, useNA = "always"))
 
@@ -105,7 +99,7 @@ cat("\n  is_correct breakdown:\n")
 print(table(responses$is_correct, useNA = "always"))
 
 
-# ---- 3. COMPUTE PER-PARTICIPANT ACCURACY -------------------
+# ---- 3. izračunavanje procenta tačnosti po ispitaniku -------------------
 cat("\nComputing per-participant accuracy...\n")
 
 participant_accuracy <- responses %>%
@@ -127,17 +121,17 @@ cat("\n  Full per-participant accuracy table:\n")
 print(participant_accuracy, n = Inf)
 
 
-# ---- 4. APPLY EXCLUSION CRITERIA ---------------------------
-ACCURACY_THRESHOLD <- 0.90   # 90% correct required
+# ---- 4. primeni prag uvrštenosti u analizu od 90% tačnosti-----------------
+ACCURACY_THRESHOLD <- 0.90  
 
-# Participants BELOW threshold -> excluded entirely
+# potpuno isključi iz dataset-a ispitanike sa tačnošću manjom od 90%
 excluded_participants <- participant_accuracy %>%
   filter(accuracy < ACCURACY_THRESHOLD) %>%
   mutate(exclusion_reason = paste0(
     "Accuracy below 90% (", accuracy_pct, "%)"
   ))
 
-# Participants AT or ABOVE threshold -> kept
+# zadržati one sa > 90%
 kept_participants <- participant_accuracy %>%
   filter(accuracy >= ACCURACY_THRESHOLD)
 
@@ -159,9 +153,8 @@ if (nrow(excluded_participants) > 0) {
 }
 
 
-# ---- 5. IDENTIFY INCORRECT TRIALS TO REMOVE ----------------
-# For KEPT participants, find the specific trials they got wrong
-# These trials are removed even though the participant stays in
+# ---- 5. identifikuj rečenice na koje nije tačno odgovoreno među zadržanim ispitanicima ------------
+
 
 incorrect_trials <- responses %>%
   filter(
@@ -173,7 +166,7 @@ incorrect_trials <- responses %>%
 cat("\n  Incorrect trials to remove from kept participants:",
     nrow(incorrect_trials), "\n")
 
-# Show how many incorrect trials each kept participant had
+# pobrojavanje netačnih odgovora po ispitaniku
 if (nrow(incorrect_trials) > 0) {
   incorrect_per_ppt <- incorrect_trials %>%
     count(participant_id, name = "n_incorrect_trials")
@@ -182,14 +175,14 @@ if (nrow(incorrect_trials) > 0) {
 }
 
 
-# ---- 6. APPLY EXCLUSIONS TO GAZE DATA ----------------------
+# ---- 6. primeni isključenja  --------  
 cat("\nApplying exclusions to gaze data...\n")
 
-# Ensure participant_id is character type for safe joining
-gaze <- gaze %>%
-  mutate(participant_id = as.character(participant_id))
 
-# Step 1: remove excluded participants entirely
+gaze <- gaze %>%
+  mutate(participant_id = as.character(participant_id)) #stirng kao osiguravanje "join" operacije
+
+#primeni isključenje ispitanika
 gaze_clean <- gaze %>%
   filter(!participant_id %in% excluded_participants$participant_id)
 
@@ -198,10 +191,7 @@ cat("    Rows:", nrow(gaze_clean), "\n")
 cat("    Participants:",
     length(unique(gaze_clean$participant_id)), "\n")
 
-# Step 2: remove incorrect trials from kept participants
-# anti_join() keeps only rows in gaze_clean that have
-# NO match in incorrect_trials
-# i.e. it removes the wrong-answer trials
+#primmeni isključivanje trial-a
 gaze_clean <- gaze_clean %>%
   anti_join(incorrect_trials,
             by = c("participant_id", "trial_number"))
@@ -215,7 +205,7 @@ cat("    Unique participant x trial combinations:",
                         gaze_clean$trial_number))), "\n")
 
 
-# ---- 7. TRIAL LOSS SUMMARY ---------------------------------
+# ---- 7. sažetak isključenih trial-a -------------------------
 trials_before <- gaze %>%
   filter(participant_id %in% kept_participants$participant_id) %>%
   distinct(participant_id, trial_number) %>%
@@ -236,8 +226,7 @@ cat("\n  Trials per participant before and after trial exclusion:\n")
 print(trial_loss)
 
 
-# ---- 8. EXPORT EXCLUSION REPORT ----------------------------
-# A complete record of every decision — useful for your methods section
+# ---- 8. zabeleži isključeno --------------------------
 
 report <- participant_accuracy %>%
   mutate(
@@ -259,13 +248,13 @@ write.csv(report, report_path, row.names = FALSE)
 cat("\nExclusion report saved to:", report_path, "\n")
 
 
-# ---- 9. EXPORT CLEAN GAZE DATA -----------------------------
+# ---- 9. eksporovanje prečišćene baze podataka -----------------------------
 clean_path <- here("data", "processed", "gaze_binned_CLEAN.csv")
 write.csv(gaze_clean, clean_path, row.names = FALSE)
 cat("Clean gaze data saved to:", clean_path, "\n")
 
 
-# ---- 10. FINAL SUMMARY -------------------------------------
+# ---- 10. sažetak ---------------------
 cat("\n=== EXCLUSION COMPLETE ===\n")
 cat("  Original participants:  ",
     length(unique(gaze$participant_id)), "\n")
