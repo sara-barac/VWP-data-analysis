@@ -119,7 +119,7 @@ B[gaze_csv]
 end
  
 subgraph pretprocesiranje
-C[01_preprocess_TEST.R]
+C[01_preprocess.R]
 end
 
 subgraph BAZA PODATAKA
@@ -161,16 +161,17 @@ C --> D --> E --> F --> G --> H
 
 ✅ čuva rezultat u fajlu **gaze_binned_FULL.csv**
 
-2. 02_exclusions.R
+2. **02_exclusions.R**
 
+✅ identifikuje i isključuje ispitanike koji imaju procenat tačnih odgovora na kontrolna pitanja manji od 90%
 
-4. **gaze_binned_FULL.csv**  
-povezani uslovi za svakog ispitanika, pogled interpoliran i razdvojen na jednake vremenske intervale
+✅ identifikuje rečenice sa netačnim odgovorima preostalih isptianika  i isključuje te pojedinačne rečenice
 
-6. **gaze_binned_CLEAN.csv**  
-isključivanje nevalidnih ispitanika i netačnih pojedinačnih odgovora
+✅ eksportuje prečišćenji dataset **gaze_binned_CLEAN.csv**
 
-8. **gaze_binned_gender.csv**  
+3. 
+
+4. **gaze_binned_gender.csv**  
 povezivanje pola ispitanika sa njihovim odgovorima na osnovu podataka iz data_exp_249742-v1_questionnaires.csv
 ---
 
