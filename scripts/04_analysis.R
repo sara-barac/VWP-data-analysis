@@ -364,8 +364,7 @@ cat("  plot_02_rod_x_prest.png saved\n")
 
 
 # ---- PLOT 3: rod x pol -------------------------------------
-# Does grammatical gender drive prediction differently
-# for male vs female participants?
+
 
 p3_data <- data %>%
   group_by(time_bin, rod, pol) %>%

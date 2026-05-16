@@ -177,11 +177,16 @@ C --> D --> E --> F --> G --> H
 
 ✅  uvezuje podatke ispitanika sa njihovim polom (nezavisnom kategoričkom varijablom -- faktorom ispitanika)
 
-✅ čuva ove podatke u konačnom dataset-u za analizu **gaze_binned_GENDER.csv**
+✅  čuva ove podatke u konačnom dataset-u za analizu **gaze_binned_GENDER.csv**
 
 4. **04_analysis.R** 
 
-✅ 
+✅  izvršava GCA fitovanje modela i analizu
 
- 
----
+✅  čuva model i sažetak rezultata
+
+✅  vizualizuje ključne efekte kroz četiri grafika
+
+✅ čuva rezultate modela u fajlu **gca_model_summary.txt** i grafike u **data/processed/plots**
+
+ ---

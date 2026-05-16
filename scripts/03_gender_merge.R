@@ -2,7 +2,7 @@
 # SKRIPTA 3 — POL ISPITANIKA
 #
 # Ova skripta:
-#   1. Riščitava podatke o polu iz autputa Gorilla-e
+#   1. Iščitava podatke o polu iz autputa Gorilla-e
 #   2. isključuje ispitanike neizjašnjene po polu
 #   3. uvezuje podatke ispitanika sa njihovim polom (nezavisnom kategoričkom varijablom -- faktorom ispitanika)
 # #
