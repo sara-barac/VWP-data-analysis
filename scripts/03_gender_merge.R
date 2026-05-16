@@ -1,29 +1,27 @@
 # ============================================================
-# SCRIPT 03 — PARTICIPANT GENDER MERGE
-# Nomina agentis VWP — rod x glas x prestiznost x pol
+# SKRIPTA 3 — POL ISPITANIKA
 #
-# WHAT THIS SCRIPT DOES:
-#   1. Reads participant gender from the Gorilla questionnaire file
-#   2. Excludes participants who did not declare gender (Response = 3)
-#   3. Merges gender onto the clean gaze dataset
-#   4. Saves the final analysis-ready dataset
-#
+# Ova skripta:
+#   1. Riščitava podatke o polu iz autputa Gorilla-e
+#   2. isključuje ispitanike neizjašnjene po polu
+#   3. uvezuje podatke ispitanika sa njihovim polom (nezavisnom kategoričkom varijablom -- faktorom ispitanika)
+# #
 # INPUT:  data/processed/gaze_binned_CLEAN.csv
 #         data/raw/gorilla/data_exp_249742-v1_questionnaires.csv
 #
-# OUTPUT: data/processed/gaze_binned_GENDER.csv
+# AUTPUT: data/processed/gaze_binned_GENDER.csv
 # ============================================================
 
 
-# ---- 0. PACKAGES -------------------------------------------
+# ---- 0. biblioteke  --------------------------------------
 library(dplyr)
 library(here)
 
 
-# ---- 1. LOAD QUESTIONNAIRE FILE ----------------------------
+# ---- 1. učitavanje autput fajla Gorille ----------------------------
 cat("Loading questionnaire data...\n")
 
-# !! EDIT THIS LINE if your questionnaire filename differs
+
 questionnaire_raw <- read.csv(
   here("data", "raw", "gorilla",
        "data_exp_249742-v1_questionnaires.csv"),
@@ -36,16 +34,7 @@ cat("  Unique participants:",
     length(unique(questionnaire_raw$Participant.Private.ID)), "\n\n")
 
 
-# ---- 2. EXTRACT GENDER PER PARTICIPANT ---------------------
-# Gender is stored in rows where:
-#   Question == "Pol:"
-#   Response.Type == "response"
-#   Key == "value"
-#
-# Response values:
-#   1 = female (zenski)
-#   2 = male   (muski)
-#   3 = did not declare → excluded
+# ---- 2. izdvajane podataka o polu ---------------------
 
 cat("Extracting gender responses...\n")
 
@@ -63,15 +52,15 @@ gender_raw <- questionnaire_raw %>%
   select(participant_id, gender_code)
 
 cat("  Gender responses found:", nrow(gender_raw), "\n\n")
-
-# Sanity check — should show 1s, 2s, and possibly 3s
+s
+# provera = vrednosti mogu biti 1, 2 ili 3
 cat("  Gender code distribution:\n")
 print(table(gender_raw$gender_code, useNA = "always"))
 cat("  (1 = male/muski, 2 = female/zenski,",
     "3 = did not declare)\n\n")
 
 
-# ---- 3. EXCLUDE NON-DECLARERS & RECODE ---------------------
+# ---- 3. isključivanje onih koji se nisu izjasnili ---------------
 gender_clean <- gender_raw %>%
   filter(gender_code != 3) %>%
   mutate(
@@ -91,7 +80,7 @@ cat("  Gender distribution after exclusion:\n")
 print(table(gender_clean$pol))
 
 
-# ---- 4. LOAD CLEAN GAZE DATA -------------------------------
+# ---- 4. učitavanje prečišćene baze podataka -------------------------------
 cat("\nLoading clean gaze data...\n")
 
 gaze <- read.csv(
@@ -104,10 +93,8 @@ cat("  Rows:", nrow(gaze), "\n")
 cat("  Participants:", length(unique(gaze$participant_id)), "\n\n")
 
 
-# ---- 5. MERGE GENDER ONTO GAZE DATA ------------------------
-# inner_join keeps only participants who have a gender entry
-# Participants with gender_code = 3 are automatically excluded
-# because they have no row in gender_clean
+# ---- 5. SPAJANJE POLA I PODATAKA O KOORDINATAMA POGLEDA ---------------------
+
 
 gaze_gender <- gaze %>%
   inner_join(gender_clean, by = "participant_id")
@@ -125,7 +112,7 @@ cat("  Participants after merge: ",
 cat("  Participants dropped (gender not declared):",
     n_dropped, "\n\n")
 
-# Final gender breakdown
+# sažetak
 cat("Final sample:\n")
 gender_summary <- gaze_gender %>%
   distinct(participant_id, pol) %>%
@@ -133,7 +120,7 @@ gender_summary <- gaze_gender %>%
 print(gender_summary)
 
 
-# ---- 6. EXPORT ---------------------------------------------
+# ---- 6. eksportovanje podataka ------------------------------------------
 output_path <- here("data", "processed", "gaze_binned_GENDER.csv")
 write.csv(gaze_gender, output_path, row.names = FALSE)
 
@@ -144,18 +131,3 @@ cat("Columns:", paste(names(gaze_gender), collapse = ", "), "\n")
 
 cat("\n=== SCRIPT 03 COMPLETE ===\n")
 cat("Ready for Script 04 — Analysis\n")
-
-# Methods section wording
-n_female <- sum(gender_summary$n_participants[
-  gender_summary$pol == "zenski"])
-n_male <- sum(gender_summary$n_participants[
-  gender_summary$pol == "muski"])
-
-cat("\n  --- Methods section wording ---\n")
-cat(paste0(
-  "  'An additional ", n_dropped,
-  " participant(s) were excluded for not declaring their gender,",
-  " leaving a final sample of ",
-  length(unique(gaze_gender$participant_id)),
-  " participants (", n_female, " female, ", n_male, " male).'\n"
-))
