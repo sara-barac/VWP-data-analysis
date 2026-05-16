@@ -135,11 +135,11 @@ F[gaze_binned_CLEAN.csv]
 end
 
 subgraph uvrštavanje pola ispitanika
-G[04_gender.R]
+G[03_gender_merge.R]
 end
 
 subgraph BAZA SA KODIRANIM POLOM ISP.
-H[gaze_binned_gender.csv]
+H[gaze_binned_GENDER.csv]
 end
 
 A --> C
@@ -169,10 +169,21 @@ C --> D --> E --> F --> G --> H
 
 ✅ eksportuje prečišćenji dataset **gaze_binned_CLEAN.csv**
 
-3. 
+3. **03_gender_merge.R**
 
-4. **gaze_binned_gender.csv**  
-povezivanje pola ispitanika sa njihovim odgovorima na osnovu podataka iz data_exp_249742-v1_questionnaires.csv
+✅  iščitava podatke o polu iz autputa Gorilla-e
+
+✅  isključuje ispitanike neizjašnjene po polu
+
+✅  uvezuje podatke ispitanika sa njihovim polom (nezavisnom kategoričkom varijablom -- faktorom ispitanika)
+
+✅ čuva ove podatke u konačnom dataset-u za analizu **gaze_binned_GENDER.csv**
+
+4. **04_analysis.R** 
+
+✅
+
+ 
 ---
 
 ```mermaid
