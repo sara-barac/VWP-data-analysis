@@ -1,6 +1,6 @@
 ## Rezultati analize 
 
-Na osnovu rada (1) nad podacima prikupljenim kroz psiholingvističku paradigu vizuelnog sveta sprovedena je longitudinalna analiza *Growth Curve Analysis*.
+Na osnovu rada (1) nad podacima prikupljenim kroz psiholingvističku paradigmu vizuelnog sveta sprovedena je longitudinalna analiza *Growth Curve Analysis*.
 
 Istraživačko pitanje: 
 
@@ -30,13 +30,15 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** primećujemo sledeće
 <td width="60%">
 
 
-1) Efekat roda izgovorene imenice značajno (p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12), ali i kvadratnu* ( p < 0.01) vremensku krivu (β = 0.321, SE = 0.047, t = 6.83, p < .001), ukazujući na to da pogled prema referentu imenice muškog ili ženskog pola tokom toka rečenice statistički značajno prati rod izgovorene imenice. 
+1) Efekat roda izgovorene imenice značajno (p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12), ali i kvadratnu* ( p < 0.01) vremensku krivu (β = 0.321, SE = 0.047, t = 6.83, p < .001), ukazujući na to da pogled prema referentu imenice muškog ili ženskog pola tokom toka rečenice statistički značajno prati rod izgovorene imenice.
+
+*kvadratna kriva - _polynomial time curve_ in GCA
 
 </td>
 </tr>
 </table>
 
-*kvadratna kriva - _polynomial time curve_ in GCA
+
 ---
 
 📌 Uticaj interakcije faktora **roda i prestižnosti**
