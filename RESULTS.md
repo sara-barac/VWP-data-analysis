@@ -24,7 +24,7 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** priećujemo sledeće 
 <tr>
 <td width="40%">
 
-<img src="data/processed/plot_01_rod.png" width="100%">
+<img src="data/processed/plots/plot_01_rod.png" width="100%">
 
 </td>
 
