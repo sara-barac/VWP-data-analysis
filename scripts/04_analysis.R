@@ -362,93 +362,53 @@ ggsave(here("data", "processed", "plots",
        p2, width = 9, height = 5, dpi = 300)
 cat("  plot_02_rod_x_prest.png saved\n")
 
-
-# ---- PLOT 3: rod x pol -------------------------------------
-
+# ---- PLOT 3: glas x prestižnost ------------------------------------
 
 p3_data <- data %>%
-  group_by(time_bin, rod, pol) %>%
+  group_by(time_bin, glas, prestiznost) %>%
   summarise(
     mean_elogit = mean(elogit, na.rm = TRUE),
     se          = sd(elogit, na.rm = TRUE) / sqrt(n()),
     .groups     = "drop"
   ) %>%
   mutate(
-    pol_label = ifelse(pol == "zenski",
-                       "Female participants",
-                       "Male participants")
+    glas_label  = ifelse(glas == "muski",
+                         "Male voice", "Female voice"),
+    prest_label = ifelse(prestiznost == "p",
+                         "Prestigious", "Non-prestigious")
   )
 
 p3 <- ggplot(p3_data,
              aes(x = time_bin, y = mean_elogit,
-                 colour = rod, fill = rod)) +
+                 colour = glas_label, fill = glas_label)) +
   geom_ribbon(aes(ymin = mean_elogit - se,
                   ymax = mean_elogit + se),
               alpha = 0.15, colour = NA) +
   geom_line(linewidth = 1) +
   geom_hline(yintercept = 0, linetype = "dashed",
              colour = "grey50") +
-  facet_wrap(~ pol_label) +
-  colour_rod + fill_rod +
+  facet_wrap(~ prest_label) +
+  scale_colour_manual(
+    values = c("Male voice" = "#2166ac", "Female voice" = "#d6604d")
+  ) +
+  scale_fill_manual(
+    values = c("Male voice" = "#2166ac", "Female voice" = "#d6604d")
+  ) +
   labs(
-    title    = "Empirical logit by noun gender × participant gender (pol)",
-    subtitle = "Does grammatical gender prediction differ for male vs female participants?",
+    title    = "Empirical logit by speaker voice × prestige",
+    subtitle = "The voice effect is modulated by occupational prestige",
     x        = "Time from sentence onset (ms)",
     y        = "Empirical logit (ZNA vs MNA)",
-    colour   = "Noun gender",
-    fill     = "Noun gender"
+    colour   = "Speaker voice",
+    fill     = "Speaker voice"
   ) +
   theme_vwp
 
 ggsave(here("data", "processed", "plots",
-            "plot_03_rod_x_pol.png"),
+            "plot_03_glas_x_prest.png"),
        p3, width = 10, height = 5, dpi = 300)
-cat("  plot_03_rod_x_pol.png saved\n")
+cat("  plot_03_glas_x_prest.png saved\n")
 
-
-# ---- PLOT 4: rod x prestiznost x pol -----------------------
-
-p4_data <- data %>%
-  group_by(time_bin, rod, prestiznost, pol) %>%
-  summarise(
-    mean_elogit = mean(elogit, na.rm = TRUE),
-    se          = sd(elogit, na.rm = TRUE) / sqrt(n()),
-    .groups     = "drop"
-  ) %>%
-  mutate(
-    pol_label   = ifelse(pol == "zenski",
-                         "Female participants",
-                         "Male participants"),
-    prest_label = ifelse(prestiznost == "p",
-                         "Prestigious",
-                         "Non-prestigious")
-  )
-
-p4 <- ggplot(p4_data,
-             aes(x = time_bin, y = mean_elogit,
-                 colour = rod, fill = rod)) +
-  geom_ribbon(aes(ymin = mean_elogit - se,
-                  ymax = mean_elogit + se),
-              alpha = 0.12, colour = NA) +
-  geom_line(linewidth = 0.9) +
-  geom_hline(yintercept = 0, linetype = "dashed",
-             colour = "grey50") +
-  facet_grid(prest_label ~ pol_label) +
-  colour_rod + fill_rod +
-  labs(
-    title   = "Noun gender × prestige × participant gender",
-    subtitle = "Male participants show stronger male-prestige stereotyping",
-    x       = "Time from sentence onset (ms)",
-    y       = "Empirical logit (ZNA vs MNA)",
-    colour  = "Noun gender",
-    fill    = "Noun gender"
-  ) +
-  theme_vwp
-
-ggsave(here("data", "processed", "plots",
-            "plot_04_rod_x_prest_x_pol.png"),
-       p4, width = 10, height = 7, dpi = 300)
-cat("  plot_04_rod_x_prest_x_pol.png saved\n")
 
 
 # ============================================================
@@ -473,8 +433,8 @@ cat("  data/processed/gca_model.rds\n")
 cat("  data/processed/gca_model_summary.txt\n")
 cat("  data/processed/plots/plot_01_rod.png\n")
 cat("  data/processed/plots/plot_02_rod_x_prest.png\n")
-cat("  data/processed/plots/plot_03_rod_x_pol.png\n")
-cat("  data/processed/plots/plot_04_rod_x_prest_x_pol.png\n\n")
+cat("  data/processed/plots/plot_03_glas_x_prest.png\n")
+
 
 cat("PIPELINE COMPLETE:\n")
 cat("  00_diagnostic.R       → zone coordinate check\n")
