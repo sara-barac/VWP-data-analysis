@@ -53,7 +53,7 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** primećujemo sledeće
 
 
 
-2) Interakcija faktora roda i presižnosti značajno (p < 0.01; p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12) i kvadratnu (β = 0.321, SE = 0.047, t = 6.83, p < .001) krivu, tako da se preferenca ka referentima ranije i jače javlja kod imenica muškog roda.
+2) Interakcija faktora roda i presižnosti značajno (p < 0.01; p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12) i kvadratnu (β = 0.321, SE = 0.047, t = 6.83, p < .001) krivu, tako da se preferenca ka prestžnim referentima ranije i jače javlja kod imenica muškog roda.
 
 </td>
 </tr>
@@ -85,8 +85,23 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** primećujemo sledeće
 
 ---
 
+**Kratki komentari o globalno značajnim statičkim faktorima i njihove interakcijama**
 
 
+Nezavisno od vremeskog toka izlaganja stimulusu, na globalnom nivou su se sledeći faktori pokazali značajnim: 
+
+1. Gramatički rod (β = 0.058, SE = 0.028, t = 2.09, p = .042), tako da je pogled ka referentu jednog ili drugog pola značajno bio kongruentan sa rodom izgovorene imenice.
+
+
+2. Interakcija roda i pola pokazala se značajnom (β = −0.027, SE = 0.008, t = −3.22, p = .001) tokom čitave rečenice, tako da su ispitanice više gledale u referente ženskog pola, a muškarci više u one muškog.
+
+
+3. Interakcija faktora glasa kojim je izgovarana rečenica i pola ispitanika bila je značajna (β = −0.038, SE = 0.008, t = −4.56, p < .001), tako da su žene u muške referente gledale više kada ih izgovara muški glas, kao i muškarci kada ih izgovara ženski glas. 
+
+
+4. I nezavisno od vremenskog razvoja rečenice, statistički značajno interaguju faktori prestižnosti zanimanja i pola ispitanika 
+(β = 0.089, SE = 0.008, t = 10.61, p < .001), tako da ispitanice pokazuju izraženiju tendenciju ka ženskom referentu kod neprestižnih zanimanja, a muškarci, neočekivano, ka ženskim referentima kod muških zanimanja. 
+Ovaj rezultat se može interpretirati u svetu internalizacije rodne stereotipizacije u kontekstu rodnih uloga, ali i dalje ispitati na većem i ujednačenijem rodnom uzorku.
 
 
 ## Literatura
