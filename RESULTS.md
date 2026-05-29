@@ -55,7 +55,7 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** primećujemo sledeće
 
 
 
-2) Interakcija faktora roda i presižnosti značajno (p < 0.01; p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12) i kvadratnu (β = 0.321, SE = 0.047, t = 6.83, p < .001) krivu, tako da se preferenca ka prestžnim referentima ranije i jače javlja kod imenica muškog roda.
+2) Interakcija faktora roda i presižnosti značajno (p < 0.01; p < 0.01) utiče na linearnu (β = 0.379, SE = 0.047, t = 8.12) i kvadratnu (β = 0.321, SE = 0.047, t = 6.83, p < .001) krivu, tako da se preferenca ka prestižnim referentima ranije i jače javlja kod imenica muškog roda.
 
 </td>
 </tr>
@@ -79,7 +79,7 @@ Na osnovu vrednosti prikazanih u **gca_model_sumarry.txt** primećujemo sledeće
 
 <td width="60%">
 
-3) Interakcija faktora glasa i prestižnosti značajno utiče na linearnu (β = 0.456, SE = 0.089, t = 5.10, p < .001), kao i na kvadratnu komponentu (β = 0.210, SE = 0.090, t = 2.33, p = .020) vremenske krive, tako da se kod prestižnih zanimanja izgovorenih ženskim glasom gledalo u ženskog referenta, a presižnog zanimanja izgovorenim muškim glasom u muškog. 
+1) Interakcija faktora glasa i prestižnosti značajno utiče na linearnu (β = 0.456, SE = 0.089, t = 5.10, p < .001), kao i na kvadratnu komponentu (β = 0.210, SE = 0.090, t = 2.33, p = .020) vremenske krive, tako da postoji značajna tendencija gledanja u ženskog referenta kod prestižnih zanimanja izgovorenih ženskim glasom, kao i u muškog referenta kod presižnog zanimanja izgovorenim muškim glasom. 
 
 </td>
 </tr>
@@ -104,6 +104,12 @@ Nezavisno od vremeskog toka izlaganja stimulusu, na globalnom nivou su se slede�
 4. I nezavisno od vremenskog razvoja rečenice, statistički značajno interaguju faktori prestižnosti zanimanja i pola ispitanika 
 (β = 0.089, SE = 0.008, t = 10.61, p < .001), tako da ispitanice pokazuju izraženiju tendenciju ka ženskom referentu kod neprestižnih zanimanja, a muškarci, neočekivano, ka ženskim referentima kod muških zanimanja. 
 Ovaj rezultat se može interpretirati u svetu internalizacije rodne stereotipizacije u kontekstu rodnih uloga, ali i dalje ispitati na većem i ujednačenijem rodnom uzorku.
+
+---
+
+**Predlog budućeg rada**
+
+Kako na osnovu GCA modela dobijamo informaciju o tome da li manipulisani faktori značajno utiču na tendenciju pogleda tokom vremenskog perioda praćenja pogleda, kao i jačinu tog efekta, sledeći korak u ovoj analizi bi bio sprovesti analizu koja bi pokazala i tačno u kom vremenskom trenutku dolazi do efekta faktora, te ukrstiti ova dva rezultata. Model kojim bi se dalje moglo analizirati mogao bi biti CPA (cluster based permutation analysis) (Ito et al. 2022).
 
 
 ## Literatura
